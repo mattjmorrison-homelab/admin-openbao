@@ -83,6 +83,27 @@ locals {
       EOT
     }
 
+    # Bound to the amd64 scale set's ephemeral job-execution identity (ARC's
+    # own "no-permission" ServiceAccount convention for runner pods, not the
+    # controller/listener), not the "github-runner" role above -- that one's
+    # for k8s-github-runner's own secrets, this is for CI workflows running
+    # on the runner to fetch the tofu-state bucket credentials, replacing a
+    # static GitHub Actions secret with an in-cluster Vault login. Only the
+    # two tofu-state keys, not all of admin-github/*, to keep this scoped to
+    # exactly what CI workflows need.
+    github-actions-runner = {
+      namespace       = "github-runner"
+      service_account = "k8s-amd64-gha-rs-no-permission"
+      policy          = <<-EOT
+        path "kv/data/homelab/admin-github/tofu-state-access-key-id" {
+          capabilities = ["read"]
+        }
+        path "kv/data/homelab/admin-github/tofu-state-secret-access-key" {
+          capabilities = ["read"]
+        }
+      EOT
+    }
+
     cert-manager = {
       namespace       = "cert-manager"
       service_account = "homelab-cert-manager"

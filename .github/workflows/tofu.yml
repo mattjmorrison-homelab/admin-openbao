@@ -1,0 +1,68 @@
+name: OpenTofu
+
+on:
+  push:
+  pull_request:
+
+env:
+  VAULT_ADDR: http://k8s-openbao.openbao.svc:8200
+  VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
+
+jobs:
+  plan:
+    runs-on: k8s-amd64
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch tofu-state credentials from OpenBao
+        run: |
+          JWT=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
+          LOGIN=$(curl -sf -X POST "$VAULT_ADDR/v1/auth/kubernetes/login" \
+            -d "{\"jwt\": \"$JWT\", \"role\": \"github-actions-runner\"}")
+          CLIENT_TOKEN=$(echo "$LOGIN" | grep -o '"client_token":"[^"]*"' | head -1 | cut -d'"' -f4)
+
+          ACCESS_KEY_ID=$(curl -sf -H "X-Vault-Token: $CLIENT_TOKEN" \
+            "$VAULT_ADDR/v1/kv/data/homelab/admin-github/tofu-state-access-key-id" \
+            | grep -o '"value":"[^"]*"' | head -1 | cut -d'"' -f4)
+          SECRET_ACCESS_KEY=$(curl -sf -H "X-Vault-Token: $CLIENT_TOKEN" \
+            "$VAULT_ADDR/v1/kv/data/homelab/admin-github/tofu-state-secret-access-key" \
+            | grep -o '"value":"[^"]*"' | head -1 | cut -d'"' -f4)
+
+          echo "::add-mask::$ACCESS_KEY_ID"
+          echo "::add-mask::$SECRET_ACCESS_KEY"
+          echo "AWS_ACCESS_KEY_ID=$ACCESS_KEY_ID" >> "$GITHUB_ENV"
+          echo "AWS_SECRET_ACCESS_KEY=$SECRET_ACCESS_KEY" >> "$GITHUB_ENV"
+      - uses: opentofu/setup-opentofu@v1
+        with:
+          tofu_version: "1.12.0"
+      - run: tofu init
+      - run: tofu plan
+
+  apply:
+    needs: plan
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: k8s-amd64
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch tofu-state credentials from OpenBao
+        run: |
+          JWT=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
+          LOGIN=$(curl -sf -X POST "$VAULT_ADDR/v1/auth/kubernetes/login" \
+            -d "{\"jwt\": \"$JWT\", \"role\": \"github-actions-runner\"}")
+          CLIENT_TOKEN=$(echo "$LOGIN" | grep -o '"client_token":"[^"]*"' | head -1 | cut -d'"' -f4)
+
+          ACCESS_KEY_ID=$(curl -sf -H "X-Vault-Token: $CLIENT_TOKEN" \
+            "$VAULT_ADDR/v1/kv/data/homelab/admin-github/tofu-state-access-key-id" \
+            | grep -o '"value":"[^"]*"' | head -1 | cut -d'"' -f4)
+          SECRET_ACCESS_KEY=$(curl -sf -H "X-Vault-Token: $CLIENT_TOKEN" \
+            "$VAULT_ADDR/v1/kv/data/homelab/admin-github/tofu-state-secret-access-key" \
+            | grep -o '"value":"[^"]*"' | head -1 | cut -d'"' -f4)
+
+          echo "::add-mask::$ACCESS_KEY_ID"
+          echo "::add-mask::$SECRET_ACCESS_KEY"
+          echo "AWS_ACCESS_KEY_ID=$ACCESS_KEY_ID" >> "$GITHUB_ENV"
+          echo "AWS_SECRET_ACCESS_KEY=$SECRET_ACCESS_KEY" >> "$GITHUB_ENV"
+      - uses: opentofu/setup-opentofu@v1
+        with:
+          tofu_version: "1.12.0"
+      - run: tofu init
+      - run: tofu apply -auto-approve
