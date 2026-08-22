@@ -23,6 +23,9 @@ locals {
       namespace       = "monitoring"
       service_account = "alertmanager"
       policy          = <<-EOT
+        path "kv/data/homelab/alertmanager" {
+          capabilities = ["read"]
+        }
         path "kv/data/homelab/alertmanager/*" {
           capabilities = ["read"]
         }
@@ -36,6 +39,9 @@ locals {
       namespace       = "zot"
       service_account = "zot"
       policy          = <<-EOT
+        path "kv/data/homelab/zot" {
+          capabilities = ["read"]
+        }
         path "kv/data/homelab/zot/*" {
           capabilities = ["read"]
         }
@@ -49,6 +55,9 @@ locals {
       namespace       = "argocd"
       service_account = "argocd-image-updater-controller"
       policy          = <<-EOT
+        path "kv/data/homelab/argocd-image-updater" {
+          capabilities = ["read"]
+        }
         path "kv/data/homelab/argocd-image-updater/*" {
           capabilities = ["read"]
         }
@@ -62,6 +71,9 @@ locals {
       namespace       = "hdmi-switch"
       service_account = "hdmi-switch"
       policy          = <<-EOT
+        path "kv/data/homelab/hdmi-switch" {
+          capabilities = ["read"]
+        }
         path "kv/data/homelab/hdmi-switch/*" {
           capabilities = ["read"]
         }
@@ -108,6 +120,9 @@ locals {
       namespace       = "cert-manager"
       service_account = "homelab-cert-manager"
       policy          = <<-EOT
+        path "kv/data/homelab/certmanager" {
+          capabilities = ["read"]
+        }
         path "kv/data/homelab/certmanager/*" {
           capabilities = ["read"]
         }
@@ -124,6 +139,9 @@ locals {
       namespace       = "argocd"
       service_account = "argocd-notifications-controller"
       policy          = <<-EOT
+        path "kv/data/homelab/argocd-notifications" {
+          capabilities = ["read"]
+        }
         path "kv/data/homelab/argocd-notifications/*" {
           capabilities = ["read"]
         }
@@ -137,6 +155,9 @@ locals {
       namespace       = "monitoring"
       service_account = "prometheus"
       policy          = <<-EOT
+        path "kv/data/homelab/prometheus" {
+          capabilities = ["read"]
+        }
         path "kv/data/homelab/prometheus/*" {
           capabilities = ["read"]
         }
@@ -150,6 +171,9 @@ locals {
       namespace       = "argocd"
       service_account = "argocd-webhook-secret"
       policy          = <<-EOT
+        path "kv/data/homelab/argocd" {
+          capabilities = ["read"]
+        }
         path "kv/data/homelab/argocd/*" {
           capabilities = ["read"]
         }
@@ -163,6 +187,9 @@ locals {
       namespace       = "graphql-router"
       service_account = "graphql-router"
       policy          = <<-EOT
+        path "kv/data/homelab/graphql-router" {
+          capabilities = ["read"]
+        }
         path "kv/data/homelab/graphql-router/*" {
           capabilities = ["read"]
         }
@@ -178,10 +205,16 @@ locals {
       namespace       = "woodpecker"
       service_account = "woodpecker-server"
       policy          = <<-EOT
+        path "kv/data/homelab/woodpecker" {
+          capabilities = ["read"]
+        }
         path "kv/data/homelab/woodpecker/*" {
           capabilities = ["read"]
         }
         path "kv/data/homelab/homelab-woodpecker/*" {
+          capabilities = ["read"]
+        }
+        path "kv/data/homelab/gh-org" {
           capabilities = ["read"]
         }
         path "kv/data/homelab/gh-org/*" {
@@ -199,6 +232,9 @@ locals {
       namespace       = "woodpecker"
       service_account = "woodpecker-bootstrap"
       policy          = <<-EOT
+        path "kv/data/homelab/woodpecker" {
+          capabilities = ["read", "create", "update"]
+        }
         path "kv/data/homelab/woodpecker/*" {
           capabilities = ["read", "create", "update"]
         }
@@ -215,6 +251,9 @@ locals {
       namespace       = "cloudflare"
       service_account = "cloudflare"
       policy          = <<-EOT
+        path "kv/data/homelab/cloudflare" {
+          capabilities = ["read"]
+        }
         path "kv/data/homelab/cloudflare/*" {
           capabilities = ["read"]
         }
@@ -231,8 +270,14 @@ locals {
       namespace       = "cloudflare"
       service_account = "cloudflare-bootstrap"
       policy          = <<-EOT
+        path "kv/data/homelab/tunnel" {
+          capabilities = ["read"]
+        }
         path "kv/data/homelab/tunnel/*" {
           capabilities = ["read"]
+        }
+        path "kv/data/homelab/cloudflare" {
+          capabilities = ["read", "create", "update"]
         }
         path "kv/data/homelab/cloudflare/*" {
           capabilities = ["read", "create", "update"]
@@ -250,10 +295,16 @@ locals {
       namespace       = "garage"
       service_account = "garage"
       policy          = <<-EOT
+        path "kv/data/homelab/garage" {
+          capabilities = ["read", "create", "update"]
+        }
         path "kv/data/homelab/garage/*" {
           capabilities = ["read", "create", "update"]
         }
         path "kv/data/homelab/k8s-garage/*" {
+          capabilities = ["read", "create", "update"]
+        }
+        path "kv/data/homelab/gh-org" {
           capabilities = ["read", "create", "update"]
         }
         path "kv/data/homelab/gh-org/*" {
