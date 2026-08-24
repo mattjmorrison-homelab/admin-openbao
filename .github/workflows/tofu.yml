@@ -4,13 +4,58 @@ on:
   pull_request:
     types: [opened, synchronize, reopened, closed]
 
-permissions:
-  contents: read
-  actions: read
+env:
+  VAULT_ADDR: http://k8s-openbao.openbao.svc:8200
+  VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
 
 jobs:
-  tofu:
-    uses: mattjmorrison-homelab/actions-tofu/.github/workflows/tofu.yml@42a058828c0cefd6eed4dd1882877b3a8a6c6f88
-    with:
-      needs-vault-root-token: true
-    secrets: inherit
+  check:
+    if: github.event.action != 'closed'
+    runs-on: k8s-amd64
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: opentofu/setup-opentofu@9d84900f3238fab8cd84ce47d658d25dd008be2f # v1.0.8
+        with:
+          tofu_version: "1.12.0"
+          tofu_wrapper: false
+      - name: Format check
+        run: tofu fmt -check -recursive
+      - uses: terraform-linters/setup-tflint@6e1e0642c0289bd619021bf6b34e3c08ed1e005a # v6.3.0
+      - run: tflint --init
+      - run: tflint
+      - uses: mattjmorrison-homelab/actions-tofu/fetch-credentials@3212f0d1ba6e7fc9a8f6a5d5ccd8ca47aa21b601
+      - run: tofu init
+      - run: tofu plan -out=tfplan
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: tfplan
+          path: tfplan
+          retention-days: 5
+
+  apply:
+    if: github.event.action == 'closed' && github.event.pull_request.merged == true
+    runs-on: k8s-amd64
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: main
+      - id: find_run
+        uses: mattjmorrison-homelab/actions-tofu/find-check-run@3212f0d1ba6e7fc9a8f6a5d5ccd8ca47aa21b601
+        with:
+          head-sha: ${{ github.event.pull_request.head.sha }}
+          repo: ${{ github.repository }}
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: tfplan
+          run-id: ${{ steps.find_run.outputs.run-id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: mattjmorrison-homelab/actions-tofu/fetch-credentials@3212f0d1ba6e7fc9a8f6a5d5ccd8ca47aa21b601
+      - uses: opentofu/setup-opentofu@9d84900f3238fab8cd84ce47d658d25dd008be2f # v1.0.8
+        with:
+          tofu_version: "1.12.0"
+          tofu_wrapper: false
+      - run: tofu init
+      - run: tofu apply -auto-approve tfplan
