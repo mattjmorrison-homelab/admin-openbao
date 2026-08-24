@@ -9,33 +9,21 @@ env:
   VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
 
 jobs:
-  plan:
+  check:
     if: github.event.action != 'closed'
     runs-on: k8s-amd64
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - name: Fetch tofu-state credentials from OpenBao
-        run: |
-          JWT=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
-          LOGIN=$(curl -sf -X POST "$VAULT_ADDR/v1/auth/kubernetes/login" \
-            -d "{\"jwt\": \"$JWT\", \"role\": \"github-actions-runner\"}")
-          CLIENT_TOKEN=$(echo "$LOGIN" | grep -o '"client_token":"[^"]*"' | head -1 | cut -d'"' -f4)
-
-          ACCESS_KEY_ID=$(curl -sf -H "X-Vault-Token: $CLIENT_TOKEN" \
-            "$VAULT_ADDR/v1/kv/data/homelab/admin-github/tofu-state-access-key-id" \
-            | grep -o '"value":"[^"]*"' | head -1 | cut -d'"' -f4)
-          SECRET_ACCESS_KEY=$(curl -sf -H "X-Vault-Token: $CLIENT_TOKEN" \
-            "$VAULT_ADDR/v1/kv/data/homelab/admin-github/tofu-state-secret-access-key" \
-            | grep -o '"value":"[^"]*"' | head -1 | cut -d'"' -f4)
-
-          echo "::add-mask::$ACCESS_KEY_ID"
-          echo "::add-mask::$SECRET_ACCESS_KEY"
-          echo "AWS_ACCESS_KEY_ID=$ACCESS_KEY_ID" >> "$GITHUB_ENV"
-          echo "AWS_SECRET_ACCESS_KEY=$SECRET_ACCESS_KEY" >> "$GITHUB_ENV"
       - uses: opentofu/setup-opentofu@9d84900f3238fab8cd84ce47d658d25dd008be2f # v1.0.8
         with:
           tofu_version: "1.12.0"
           tofu_wrapper: false
+      - name: Format check
+        run: tofu fmt -check -recursive
+      - uses: terraform-linters/setup-tflint@6e1e0642c0289bd619021bf6b34e3c08ed1e005a # v6.3.0
+      - run: tflint --init
+      - run: tflint
+      - uses: mattjmorrison-homelab/actions-tofu/fetch-credentials@58daf722248c6ba7c9308cf67b6ec3dd58ddff39
       - run: tofu init
       - run: tofu plan -out=tfplan
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -54,43 +42,17 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           ref: main
-      - name: Find the plan run for this PR's merged commit
-        id: find_run
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        run: |
-          RUN_ID=$(curl -sf -H "Authorization: Bearer $GITHUB_TOKEN" \
-            "https://api.github.com/repos/${{ github.repository }}/actions/runs?head_sha=${HEAD_SHA}&event=pull_request&status=success" \
-            | jq -r '.workflow_runs[] | select(.name=="OpenTofu") | .id' | head -1)
-          if [ -z "$RUN_ID" ]; then
-            echo "No successful plan run found for head SHA ${HEAD_SHA}" >&2
-            exit 1
-          fi
-          echo "run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
+      - id: find_run
+        uses: mattjmorrison-homelab/actions-tofu/find-check-run@58daf722248c6ba7c9308cf67b6ec3dd58ddff39
+        with:
+          head-sha: ${{ github.event.pull_request.head.sha }}
+          repo: ${{ github.repository }}
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: tfplan
-          run-id: ${{ steps.find_run.outputs.run_id }}
+          run-id: ${{ steps.find_run.outputs.run-id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Fetch tofu-state credentials from OpenBao
-        run: |
-          JWT=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
-          LOGIN=$(curl -sf -X POST "$VAULT_ADDR/v1/auth/kubernetes/login" \
-            -d "{\"jwt\": \"$JWT\", \"role\": \"github-actions-runner\"}")
-          CLIENT_TOKEN=$(echo "$LOGIN" | grep -o '"client_token":"[^"]*"' | head -1 | cut -d'"' -f4)
-
-          ACCESS_KEY_ID=$(curl -sf -H "X-Vault-Token: $CLIENT_TOKEN" \
-            "$VAULT_ADDR/v1/kv/data/homelab/admin-github/tofu-state-access-key-id" \
-            | grep -o '"value":"[^"]*"' | head -1 | cut -d'"' -f4)
-          SECRET_ACCESS_KEY=$(curl -sf -H "X-Vault-Token: $CLIENT_TOKEN" \
-            "$VAULT_ADDR/v1/kv/data/homelab/admin-github/tofu-state-secret-access-key" \
-            | grep -o '"value":"[^"]*"' | head -1 | cut -d'"' -f4)
-
-          echo "::add-mask::$ACCESS_KEY_ID"
-          echo "::add-mask::$SECRET_ACCESS_KEY"
-          echo "AWS_ACCESS_KEY_ID=$ACCESS_KEY_ID" >> "$GITHUB_ENV"
-          echo "AWS_SECRET_ACCESS_KEY=$SECRET_ACCESS_KEY" >> "$GITHUB_ENV"
+      - uses: mattjmorrison-homelab/actions-tofu/fetch-credentials@58daf722248c6ba7c9308cf67b6ec3dd58ddff39
       - uses: opentofu/setup-opentofu@9d84900f3238fab8cd84ce47d658d25dd008be2f # v1.0.8
         with:
           tofu_version: "1.12.0"
