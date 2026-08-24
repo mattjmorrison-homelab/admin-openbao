@@ -23,7 +23,7 @@ jobs:
       - uses: terraform-linters/setup-tflint@6e1e0642c0289bd619021bf6b34e3c08ed1e005a # v6.3.0
       - run: tflint --init
       - run: tflint
-      - uses: mattjmorrison-homelab/actions-tofu/fetch-credentials@3212f0d1ba6e7fc9a8f6a5d5ccd8ca47aa21b601
+      - uses: mattjmorrison-homelab/actions-tofu/fetch-credentials@58daf722248c6ba7c9308cf67b6ec3dd58ddff39
       - run: tofu init
       - run: tofu plan -out=tfplan
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -43,7 +43,7 @@ jobs:
         with:
           ref: main
       - id: find_run
-        uses: mattjmorrison-homelab/actions-tofu/find-check-run@3212f0d1ba6e7fc9a8f6a5d5ccd8ca47aa21b601
+        uses: mattjmorrison-homelab/actions-tofu/find-check-run@58daf722248c6ba7c9308cf67b6ec3dd58ddff39
         with:
           head-sha: ${{ github.event.pull_request.head.sha }}
           repo: ${{ github.repository }}
@@ -52,7 +52,7 @@ jobs:
           name: tfplan
           run-id: ${{ steps.find_run.outputs.run-id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
-      - uses: mattjmorrison-homelab/actions-tofu/fetch-credentials@3212f0d1ba6e7fc9a8f6a5d5ccd8ca47aa21b601
+      - uses: mattjmorrison-homelab/actions-tofu/fetch-credentials@58daf722248c6ba7c9308cf67b6ec3dd58ddff39
       - uses: opentofu/setup-opentofu@9d84900f3238fab8cd84ce47d658d25dd008be2f # v1.0.8
         with:
           tofu_version: "1.12.0"
