@@ -13,7 +13,6 @@ jobs:
     runs-on: k8s-amd64
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
       - name: Fetch tofu-state credentials from OpenBao
         run: |
           JWT=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
@@ -35,6 +34,7 @@ jobs:
       - uses: opentofu/setup-opentofu@9d84900f3238fab8cd84ce47d658d25dd008be2f # v1.0.8
         with:
           tofu_version: "1.12.0"
+          tofu_wrapper: false
       - run: tofu init
       - run: tofu plan
 
@@ -44,7 +44,6 @@ jobs:
     runs-on: k8s-amd64
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
       - name: Fetch tofu-state credentials from OpenBao
         run: |
           JWT=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
@@ -66,5 +65,6 @@ jobs:
       - uses: opentofu/setup-opentofu@9d84900f3238fab8cd84ce47d658d25dd008be2f # v1.0.8
         with:
           tofu_version: "1.12.0"
+          tofu_wrapper: false
       - run: tofu init
       - run: tofu apply -auto-approve
