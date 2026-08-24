@@ -4,6 +4,10 @@ on:
   pull_request:
     types: [opened, synchronize, reopened, closed]
 
+permissions:
+  contents: read
+  actions: read
+
 jobs:
   tofu:
     uses: mattjmorrison-homelab/actions-tofu/.github/workflows/tofu.yml@42a058828c0cefd6eed4dd1882877b3a8a6c6f88
