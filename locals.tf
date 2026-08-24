@@ -115,6 +115,9 @@ locals {
         path "kv/data/homelab/admin-github/tofu-state-secret-access-key" {
           capabilities = ["read"]
         }
+        path "kv/data/homelab/admin-github/github-token" {
+          capabilities = ["read"]
+        }
       EOT
     }
 
