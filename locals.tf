@@ -121,6 +121,21 @@ locals {
       EOT
     }
 
+    # pi-health has no ServiceAccount of its own -- it's a standalone
+    # binary on pi1, not a cluster workload -- so this role exists only
+    # for CI's apply job (running as github-runner-workload, same shared
+    # identity every other CI role uses) to fetch the SSH key it deploys
+    # pi-health with.
+    pi-health-deploy = {
+      namespace       = "github-runner"
+      service_account = "github-runner-workload"
+      policy          = <<-EOT
+        path "kv/data/homelab/pi-health/ssh-private-key" {
+          capabilities = ["read"]
+        }
+      EOT
+    }
+
     cert-manager = {
       namespace       = "cert-manager"
       service_account = "homelab-cert-manager"
@@ -351,6 +366,7 @@ locals {
       k8s-garage                   = ["rpc-secret", "admin-token", "metrics-token"]
       admin-github                 = ["github-token", "tofu-state-access-key-id", "tofu-state-secret-access-key"]
       k8s-github-runner            = ["github-app-id", "github-app-installation-id", "github-app-private-key"]
+      pi-health                    = ["ssh-private-key"]
       } : [
       for key in keys : {
         app = app
