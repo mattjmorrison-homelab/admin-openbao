@@ -136,6 +136,27 @@ locals {
       EOT
     }
 
+    # Bound to its own dedicated ServiceAccount (pi-provision-runner in
+    # k8s-github-runner), NOT github-runner-workload -- these keys can join
+    # new nodes to the whole cluster (k3s-join-token) or reach any Pi in the
+    # fleet, so this role is deliberately isolated: OpenBao's Kubernetes
+    # auth only checks which ServiceAccount a login's JWT belongs to, so
+    # sharing the everyday CI identity here would mean any repo's workflow
+    # could request this role and read these keys too. Path is keyed by
+    # device name ("pi/<name>/...") rather than an owning repo, since these
+    # keys belong to the physical Pis themselves, not to pi-provision
+    # specifically -- pi-health's own separate pi1 key (below) predates
+    # this and is intentionally left alone, not migrated in.
+    pi-provision-deploy = {
+      namespace       = "github-runner"
+      service_account = "pi-provision-runner"
+      policy          = <<-EOT
+        path "kv/data/homelab/pi/*" {
+          capabilities = ["read"]
+        }
+      EOT
+    }
+
     cert-manager = {
       namespace       = "cert-manager"
       service_account = "homelab-cert-manager"
@@ -367,6 +388,7 @@ locals {
       admin-github                 = ["github-token", "tofu-state-access-key-id", "tofu-state-secret-access-key"]
       k8s-github-runner            = ["github-app-id", "github-app-installation-id", "github-app-private-key"]
       pi-health                    = ["ssh-private-key"]
+      pi                           = ["pi1/private-key", "pizero/private-key", "pi5-8/private-key", "pi5-16/private-key", "k3s-join-token"]
       } : [
       for key in keys : {
         app = app
