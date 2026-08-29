@@ -157,6 +157,21 @@ locals {
       EOT
     }
 
+    # Narrow, per-purpose CI credential fetch using the shared
+    # github-runner-workload identity (same pattern as github-actions-runner/
+    # pi-health-deploy/pi-provision-deploy), deliberately not reusing the
+    # github-actions-runner role itself since that role's policy is scoped
+    # narrower to just tofu-state/github-token.
+    k8s-lib-ci-rbac-publish = {
+      namespace       = "github-runner"
+      service_account = "github-runner-workload"
+      policy          = <<-EOT
+        path "kv/data/homelab/k8s-lib-ci-rbac/*" {
+          capabilities = ["read"]
+        }
+      EOT
+    }
+
     cert-manager = {
       namespace       = "cert-manager"
       service_account = "homelab-cert-manager"
@@ -219,6 +234,23 @@ locals {
           capabilities = ["read"]
         }
         path "kv/data/homelab/homelab-argocd/*" {
+          capabilities = ["read"]
+        }
+      EOT
+    }
+
+    # ArgoCD's repo-server component (resolves Helm OCI chart dependencies at
+    # sync time) -- a different ServiceAccount from argocd-webhook/
+    # argocd-notifications above, which bind to argocd-webhook-secret/
+    # argocd-notifications-controller instead.
+    argocd-repo-creds = {
+      namespace       = "argocd"
+      service_account = "argocd-repo-server"
+      policy          = <<-EOT
+        path "kv/data/homelab/argocd" {
+          capabilities = ["read"]
+        }
+        path "kv/data/homelab/argocd/*" {
           capabilities = ["read"]
         }
       EOT
@@ -382,6 +414,7 @@ locals {
       homelab-argocd               = ["discord-webhook-url", "github-webhook-secret"]
       homelab-prometheus           = ["woodpecker-prometheus-auth-token"]
       k8s-graphql-router           = ["zot-ci-password"]
+      k8s-lib-ci-rbac              = ["zot-ci-password"]
       homelab-woodpecker           = ["github-client", "github-secret", "agent-secret", "vault-token", "prometheus-auth-token", "zot-ci-password"]
       homelab-cloudflare           = ["account-tag", "tunnel-id", "tunnel-secret", "cloudflare-api-token", "cf-account-id"]
       k8s-garage                   = ["rpc-secret", "admin-token", "metrics-token"]
