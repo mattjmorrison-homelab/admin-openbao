@@ -242,10 +242,13 @@ locals {
     # ArgoCD's repo-server component (resolves Helm OCI chart dependencies at
     # sync time) -- a different ServiceAccount from argocd-webhook/
     # argocd-notifications above, which bind to argocd-webhook-secret/
-    # argocd-notifications-controller instead.
-    argocd-repo-creds = {
+    # argocd-notifications-controller instead. Authenticates via a dedicated
+    # secret-fetcher ServiceAccount (argocd-repo-creds-oci-secret), matching
+    # the argocd-webhook/argocd-webhook-secret pattern, not repo-server's own
+    # ServiceAccount -- k8s-argocd's SecretStore requests this exact role.
+    argocd-repo-creds-oci = {
       namespace       = "argocd"
-      service_account = "argocd-repo-server"
+      service_account = "argocd-repo-creds-oci-secret"
       policy          = <<-EOT
         path "kv/data/homelab/argocd" {
           capabilities = ["read"]
