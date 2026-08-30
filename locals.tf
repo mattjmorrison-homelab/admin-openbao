@@ -189,8 +189,11 @@ locals {
     }
 
     # Both notifications and webhook secrets belong to the same repo
-    # (homelab-argocd), so the new path is shared even though they're two
-    # different roles/ServiceAccounts reading two different old paths.
+    # (homelab-argocd, renamed to k8s-argocd), so the homelab-argocd path
+    # is shared even though they're two different roles/ServiceAccounts
+    # reading two different old paths. Only this role has picked up the
+    # new k8s-argocd path so far -- argocd-webhook still only grants the
+    # old homelab-argocd path.
     argocd-notifications = {
       namespace       = "argocd"
       service_account = "argocd-notifications-controller"
@@ -202,6 +205,9 @@ locals {
           capabilities = ["read"]
         }
         path "kv/data/homelab/homelab-argocd/*" {
+          capabilities = ["read"]
+        }
+        path "kv/data/homelab/k8s-argocd/*" {
           capabilities = ["read"]
         }
       EOT
@@ -414,6 +420,7 @@ locals {
       homelab-argocd-image-updater = ["zot-ci-password"]
       k8s-hdmi-switch              = ["zot-ci-password"]
       homelab-cert-manager-config  = ["cloudflare-api-token"]
+      k8s-argocd                   = ["discord-webhook-url", "github-webhook-secret"]
       homelab-argocd               = ["discord-webhook-url", "github-webhook-secret"]
       homelab-prometheus           = ["woodpecker-prometheus-auth-token"]
       k8s-graphql-router           = ["zot-ci-password"]
