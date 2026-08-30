@@ -17,7 +17,17 @@ run "secrets_use_renamed_k8s_argocd_app_prefix" {
   }
 
   assert {
-    condition     = !contains([for s in local.secrets : s.app], "homelab-argocd")
-    error_message = "local.secrets should no longer have an entry with app = \"homelab-argocd\" (repo was renamed to k8s-argocd)"
+    condition     = contains([for s in local.secrets : s.app], "homelab-argocd")
+    error_message = "local.secrets should still have an entry with app = \"homelab-argocd\" until every consumer has repointed to k8s-argocd (incremental migration: add new path alongside old, remove old in a later step)"
+  }
+
+  assert {
+    condition     = contains([for s in local.secrets : s.key if s.app == "homelab-argocd"], "discord-webhook-url")
+    error_message = "local.secrets app = \"homelab-argocd\" should include key \"discord-webhook-url\""
+  }
+
+  assert {
+    condition     = contains([for s in local.secrets : s.key if s.app == "homelab-argocd"], "github-webhook-secret")
+    error_message = "local.secrets app = \"homelab-argocd\" should include key \"github-webhook-secret\""
   }
 }

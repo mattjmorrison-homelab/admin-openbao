@@ -386,6 +386,7 @@ locals {
       k8s-hdmi-switch              = ["zot-ci-password"]
       homelab-cert-manager-config  = ["cloudflare-api-token"]
       k8s-argocd                   = ["discord-webhook-url", "github-webhook-secret"]
+      homelab-argocd               = ["discord-webhook-url", "github-webhook-secret"]
       homelab-prometheus           = ["woodpecker-prometheus-auth-token"]
       k8s-graphql-router           = ["zot-ci-password"]
       homelab-woodpecker           = ["github-client", "github-secret", "agent-secret", "vault-token", "prometheus-auth-token", "zot-ci-password"]

@@ -71,8 +71,9 @@ roles or legacy paths existed separately before:
   notifications and webhook secrets (`kv/homelab/argocd-notifications`
   and `kv/homelab/argocd`), which both belong to the same repo despite
   being read by two different roles. That rename is itself mid-migration:
-  only the `argocd-notifications` role's policy grants the new
-  `kv/homelab/k8s-argocd/*` path so far, alongside the
+  both the old `homelab-argocd` and new `k8s-argocd` entries exist in
+  `locals.secrets`, and only the `argocd-notifications` role's policy
+  grants the new `kv/homelab/k8s-argocd/*` path so far, alongside the
   `kv/homelab/homelab-argocd/*` grant both roles already had;
   `argocd-webhook`'s policy hasn't picked up the new path yet.
 
