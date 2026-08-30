@@ -67,10 +67,14 @@ roles or legacy paths existed separately before:
 
 - `homelab-cloudflare`'s keys consolidate what are currently **two**
   separate paths (`kv/homelab/cloudflare` and `kv/homelab/tunnel`).
-- `homelab-argocd`'s keys consolidate the notifications and webhook
-  secrets (`kv/homelab/argocd-notifications` and `kv/homelab/argocd`),
-  which both belong to the same repo despite being read by two different
-  roles.
+- `k8s-argocd`'s keys (renamed from `homelab-argocd`) consolidate the
+  notifications and webhook secrets (`kv/homelab/argocd-notifications`
+  and `kv/homelab/argocd`), which both belong to the same repo despite
+  being read by two different roles. That rename is itself mid-migration:
+  only the `argocd-notifications` role's policy grants the new
+  `kv/homelab/k8s-argocd/*` path so far, alongside the
+  `kv/homelab/homelab-argocd/*` grant both roles already had;
+  `argocd-webhook`'s policy hasn't picked up the new path yet.
 
 ## Local usage
 
