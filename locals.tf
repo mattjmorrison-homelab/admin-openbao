@@ -48,6 +48,9 @@ locals {
         path "kv/data/homelab/homelab-zot/*" {
           capabilities = ["read"]
         }
+        path "kv/data/homelab/service/k8s-zot/*" {
+          capabilities = ["read"]
+        }
       EOT
     }
 
