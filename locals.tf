@@ -87,12 +87,20 @@ locals {
     }
 
     # Brand new secret, no legacy path to preserve -- only ever needs the
-    # one-key-per-path form.
+    # one-key-per-path form. Also reads homelab/woodpecker's existing
+    # ZOT_CI_PASSWORD -- reusing the same shared ci registry credential
+    # Woodpecker's own pipelines already push with, for the new
+    # zot-pull-secret this namespace generates (see k8s-github-runner's
+    # external-secret-zot-pull.yaml). Not a new credential, just a second
+    # reader of an existing one.
     github-runner = {
       namespace       = "github-runner"
       service_account = "github-runner"
       policy          = <<-EOT
         path "kv/data/homelab/k8s-github-runner/*" {
+          capabilities = ["read"]
+        }
+        path "kv/data/homelab/woodpecker/*" {
           capabilities = ["read"]
         }
       EOT
