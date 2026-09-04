@@ -48,6 +48,9 @@ locals {
         path "kv/data/homelab/homelab-zot/*" {
           capabilities = ["read"]
         }
+        path "kv/data/homelab/service/k8s-zot/*" {
+          capabilities = ["read"]
+        }
       EOT
     }
 
@@ -370,6 +373,38 @@ locals {
       EOT
     }
 
+    # Provider side of the service-credentials pattern (see
+    # `service_credentials` below): a dedicated bootstrap identity, not
+    # the `zot` role above (that one's read-only, for Zot's own pod to
+    # read its own htpasswd secret) -- same split as
+    # cloudflare/cloudflare-bootstrap and woodpecker/woodpecker-bootstrap.
+    # One wildcard write grant covers every consumer's leaf under this
+    # provider, so adding a new consumer never needs a policy change here.
+    zot-bootstrap = {
+      namespace       = "zot"
+      service_account = "zot-bootstrap"
+      policy          = <<-EOT
+        path "kv/data/homelab/service/k8s-zot/*" {
+          capabilities = ["read", "create", "update"]
+        }
+      EOT
+    }
+
+    # Consumer side: k8s-garage's CI (github-runner-workload, same shared
+    # identity as k8s-lib-ci-rbac-publish/pi-health-deploy) reads exactly
+    # its one credential to log into the registry before `helm dependency
+    # build`. Scoped to this one cred, not all of
+    # service/k8s-zot/k8s-garage/*, since that's all this role needs.
+    k8s-garage-pull-helm-libs = {
+      namespace       = "github-runner"
+      service_account = "github-runner-workload"
+      policy          = <<-EOT
+        path "kv/data/homelab/service/k8s-zot/k8s-garage/pull-helm-libs" {
+          capabilities = ["read"]
+        }
+      EOT
+    }
+
     # Mints its own rpc/admin/metrics secrets, and separately writes the
     # tofu-state bucket's access key into admin-github's path -- a real
     # cross-repo grant, not a mistake. Both old and new forms of each.
@@ -399,6 +434,27 @@ locals {
     }
   }
 
+  # Service-to-service credentials: the provider generates one, the
+  # consumer reads it. Path shape is
+  # kv/homelab/service/<provider>/<consumer>/<cred> -- one path per
+  # secret, folded into `secrets` below via the same {app, key} shape
+  # every other entry uses (app = "service/<provider>/<consumer>", key =
+  # <cred>), so secrets.tf needs no changes to scaffold these too.
+  service_credentials = [
+    {
+      provider = "k8s-zot"
+      consumer = "k8s-garage"
+      cred     = "pull-helm-libs"
+    },
+  ]
+
+  service_secrets = [
+    for sc in local.service_credentials : {
+      app = "service/${sc.provider}/${sc.consumer}"
+      key = sc.cred
+    }
+  ]
+
   # Every individual secret key that should exist as its own KV path,
   # scaffolded blank on first apply and never touched again afterward (see
   # secrets.tf). App prefixes are exact current repo names -- this list is
@@ -413,7 +469,7 @@ locals {
   # UPPER_SNAKE env var, ARC's literal `github_app_id` field name, etc.)
   # is applied at that app's ExternalSecret via `secretKey`, which maps
   # independently of the Vault path.
-  secrets = flatten([
+  secrets = concat(local.service_secrets, flatten([
     for app, keys in {
       homelab-alertmanager         = ["discord-webhook-url"]
       homelab-zot                  = ["htpasswd"]
@@ -439,5 +495,5 @@ locals {
         key = key
       }
     ]
-  ])
+  ]))
 }
