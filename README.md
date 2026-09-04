@@ -23,6 +23,11 @@ place that answers "what secrets exist and who can read them."
   per entry in `locals.roles`, matching every SecretStore and bootstrap
   script's Kubernetes-auth role across the whole homelab exactly as
   captured on 2026-08-21.
+- `approle.tf` — AppRole auth backend for nix-control-plane (the homelab's
+  only non-pod identity), scoped to exactly one KV path
+  (`kv/homelab/homelab/zot-readonly-password`), narrower than Kubernetes
+  roles (which grant `path` + `path/*`). Secret_id is issued out-of-band,
+  not a Terraform resource, to avoid storing it in state.
 - `secrets.tf` — a `vault_kv_secret_v2` per entry in `locals.secrets`,
   one KV path per individual secret (`kv/homelab/<app>/<key>`), written
   via `data_json_wo` (Terraform's write-only argument) so the value is
@@ -96,7 +101,7 @@ cluster — see that repo's README for the port-forward workaround.
 
 ## Adding a new secret or role
 
-Add it to `locals.roles` and/or `locals.secrets`, then `tofu apply`.
+Add it to `locals.roles` and/or `locals.secrets`, then `tofu apply`. If the identity isn't a Kubernetes pod/ServiceAccount (e.g., a host or external system), don't use `locals.roles` — instead follow the pattern in `approle.tf`: create a `vault_auth_backend`, `vault_policy`, and auth-backend-specific role resource.
 
 ## CI
 
