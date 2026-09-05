@@ -485,7 +485,7 @@ locals {
       homelab-cloudflare           = ["account-tag", "tunnel-id", "tunnel-secret", "cloudflare-api-token", "cf-account-id"]
       k8s-garage                   = ["rpc-secret", "admin-token", "metrics-token"]
       admin-github                 = ["github-token", "tofu-state-access-key-id", "tofu-state-secret-access-key"]
-      k8s-github-runner            = ["github-app-id", "github-app-installation-id", "github-app-private-key"]
+      k8s-github-runner            = ["github-app-id", "github-app-installation-id", "github-app-private-key", "zot-ci-password"]
       pi-health                    = ["ssh-private-key"]
       pi                           = ["pi1/private-key", "pizero/private-key", "pi5-8/private-key", "pi5-16/private-key", "k3s-join-token"]
       homelab                      = ["zot-readonly-password"]
