@@ -26,7 +26,7 @@ jobs:
       - uses: mattjmorrison-homelab/actions-tofu/fetch-credentials@58daf722248c6ba7c9308cf67b6ec3dd58ddff39
       - run: tofu init
       - run: tofu plan -out=tfplan
-      - uses: mattjmorrison-homelab/actions-tofu/upload-plan@a166ba95dd22a270669a8c6e5c62609e623cf7a0
+      - uses: mattjmorrison-homelab/actions-tofu/upload-plan@c4e78822f8a60715ebb3895992e5fbe8db60e76f
         with:
           key: plans/${{ github.repository }}/${{ github.sha }}/tfplan
 
@@ -38,7 +38,7 @@ jobs:
         with:
           ref: main
       - uses: mattjmorrison-homelab/actions-tofu/fetch-credentials@58daf722248c6ba7c9308cf67b6ec3dd58ddff39
-      - uses: mattjmorrison-homelab/actions-tofu/download-plan@a166ba95dd22a270669a8c6e5c62609e623cf7a0
+      - uses: mattjmorrison-homelab/actions-tofu/download-plan@c4e78822f8a60715ebb3895992e5fbe8db60e76f
         with:
           key: plans/${{ github.repository }}/${{ github.event.pull_request.head.sha }}/tfplan
       - uses: opentofu/setup-opentofu@9d84900f3238fab8cd84ce47d658d25dd008be2f # v1.0.8
