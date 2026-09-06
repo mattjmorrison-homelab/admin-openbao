@@ -132,6 +132,24 @@ locals {
       EOT
     }
 
+    # One narrow role per repo needing its own Discord webhook, bound to
+    # the same shared github-runner-workload identity as every other CI
+    # role -- deliberately not the "github-runner"/"github-actions-runner"
+    # roles above, which are scoped to their own separate purposes. Same
+    # per-purpose-role convention as pi-health-deploy/k8s-lib-ci-rbac-publish
+    # below. Woodpecker's own discord_webhook_url secret for this repo was
+    # never in OpenBao -- confirm/create the real value at this path
+    # manually before actions-openbao's fetch can work.
+    ui-hdmi-switch-discord = {
+      namespace       = "github-runner"
+      service_account = "github-runner-workload"
+      policy          = <<-EOT
+        path "kv/data/homelab/ui-hdmi-switch/*" {
+          capabilities = ["read"]
+        }
+      EOT
+    }
+
     # pi-health has no ServiceAccount of its own -- it's a standalone
     # binary on pi1, not a cluster workload -- so this role exists only
     # for CI's apply job (running as github-runner-workload, same shared
@@ -494,6 +512,7 @@ locals {
       k8s-garage                   = ["rpc-secret", "admin-token", "metrics-token"]
       admin-github                 = ["github-token", "tofu-state-access-key-id", "tofu-state-secret-access-key"]
       k8s-github-runner            = ["github-app-id", "github-app-installation-id", "github-app-private-key", "zot-ci-password"]
+      ui-hdmi-switch               = ["discord-webhook-url"]
       pi-health                    = ["ssh-private-key"]
       pi                           = ["pi1/private-key", "pizero/private-key", "pi5-8/private-key", "pi5-16/private-key", "k3s-join-token"]
       homelab                      = ["zot-readonly-password"]
