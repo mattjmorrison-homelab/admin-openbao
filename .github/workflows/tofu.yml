@@ -28,7 +28,7 @@ jobs:
       - run: tofu plan -out=tfplan
       - uses: mattjmorrison-homelab/actions-tofu/upload-plan@c4e78822f8a60715ebb3895992e5fbe8db60e76f
         with:
-          key: plans/${{ github.repository }}/${{ github.sha }}/tfplan
+          key: plans/${{ github.repository }}/${{ github.event.pull_request.head.sha }}/tfplan
 
   apply:
     if: github.event.action == 'closed' && github.event.pull_request.merged == true
