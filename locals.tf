@@ -150,6 +150,17 @@ locals {
       EOT
     }
 
+    # Same per-purpose-role convention as ui-hdmi-switch-discord above.
+    graph-hdmi-switch-discord = {
+      namespace       = "github-runner"
+      service_account = "github-runner-workload"
+      policy          = <<-EOT
+        path "kv/data/homelab/graph-hdmi-switch/*" {
+          capabilities = ["read"]
+        }
+      EOT
+    }
+
     # pi-health has no ServiceAccount of its own -- it's a standalone
     # binary on pi1, not a cluster workload -- so this role exists only
     # for CI's apply job (running as github-runner-workload, same shared
@@ -513,6 +524,7 @@ locals {
       admin-github                 = ["github-token", "tofu-state-access-key-id", "tofu-state-secret-access-key"]
       k8s-github-runner            = ["github-app-id", "github-app-installation-id", "github-app-private-key", "zot-ci-password"]
       ui-hdmi-switch               = ["discord-webhook-url"]
+      graph-hdmi-switch            = ["discord-webhook-url"]
       pi-health                    = ["ssh-private-key"]
       pi                           = ["pi1/private-key", "pizero/private-key", "pi5-8/private-key", "pi5-16/private-key", "k3s-join-token"]
       homelab                      = ["zot-readonly-password"]
