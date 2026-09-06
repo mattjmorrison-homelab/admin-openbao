@@ -161,6 +161,21 @@ locals {
       EOT
     }
 
+    # admin-discord's own bot token, fetched by its CI (check/apply) via
+    # actions-openbao before running tofu plan/apply -- separate from the
+    # shared github-actions-runner role above, which only ever grants the
+    # Garage tofu-state credentials every Terraform repo needs, never a
+    # repo-specific secret like this one.
+    admin-discord = {
+      namespace       = "github-runner"
+      service_account = "github-runner-workload"
+      policy          = <<-EOT
+        path "kv/data/homelab/admin-discord/*" {
+          capabilities = ["read"]
+        }
+      EOT
+    }
+
     # pi-health has no ServiceAccount of its own -- it's a standalone
     # binary on pi1, not a cluster workload -- so this role exists only
     # for CI's apply job (running as github-runner-workload, same shared
@@ -525,6 +540,7 @@ locals {
       k8s-github-runner            = ["github-app-id", "github-app-installation-id", "github-app-private-key", "zot-ci-password"]
       ui-hdmi-switch               = ["discord-webhook-url"]
       graph-hdmi-switch            = ["discord-webhook-url"]
+      admin-discord                = ["discord-bot-token"]
       pi-health                    = ["ssh-private-key"]
       pi                           = ["pi1/private-key", "pizero/private-key", "pi5-8/private-key", "pi5-16/private-key", "k3s-join-token"]
       homelab                      = ["zot-readonly-password"]
