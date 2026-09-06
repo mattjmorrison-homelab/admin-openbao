@@ -39,6 +39,14 @@ locals {
       namespace       = "zot"
       service_account = "zot"
       policy          = <<-EOT
+        # k8s-zot is the current name; the bare "zot"/"zot/*" grants below
+        # are legacy (repo was renamed from homelab-zot) -- keep them
+        # until the htpasswd ExternalSecret is confirmed reading from
+        # k8s-zot and the real value has been manually copied over, then
+        # drop them in a follow-up.
+        path "kv/data/homelab/k8s-zot" {
+          capabilities = ["read"]
+        }
         path "kv/data/homelab/zot" {
           capabilities = ["read"]
         }
