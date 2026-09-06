@@ -26,33 +26,21 @@ jobs:
       - uses: mattjmorrison-homelab/actions-tofu/fetch-credentials@58daf722248c6ba7c9308cf67b6ec3dd58ddff39
       - run: tofu init
       - run: tofu plan -out=tfplan
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: mattjmorrison-homelab/actions-tofu/upload-plan@c4e78822f8a60715ebb3895992e5fbe8db60e76f
         with:
-          name: tfplan
-          path: tfplan
-          retention-days: 5
+          key: plans/${{ github.repository }}/${{ github.sha }}/tfplan
 
   apply:
     if: github.event.action == 'closed' && github.event.pull_request.merged == true
     runs-on: k8s-amd64
-    permissions:
-      contents: read
-      actions: read
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           ref: main
-      - id: find_run
-        uses: mattjmorrison-homelab/actions-tofu/find-check-run@58daf722248c6ba7c9308cf67b6ec3dd58ddff39
-        with:
-          head-sha: ${{ github.event.pull_request.head.sha }}
-          repo: ${{ github.repository }}
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-        with:
-          name: tfplan
-          run-id: ${{ steps.find_run.outputs.run-id }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
       - uses: mattjmorrison-homelab/actions-tofu/fetch-credentials@58daf722248c6ba7c9308cf67b6ec3dd58ddff39
+      - uses: mattjmorrison-homelab/actions-tofu/download-plan@c4e78822f8a60715ebb3895992e5fbe8db60e76f
+        with:
+          key: plans/${{ github.repository }}/${{ github.event.pull_request.head.sha }}/tfplan
       - uses: opentofu/setup-opentofu@9d84900f3238fab8cd84ce47d658d25dd008be2f # v1.0.8
         with:
           tofu_version: "1.12.0"
