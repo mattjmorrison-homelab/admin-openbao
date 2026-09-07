@@ -23,7 +23,12 @@ read_json() {
 # KV v2's provider-driven destroy only soft-deletes the current version
 # (DELETE on kv/data/*) -- it does not purge kv/metadata/*, so a
 # "destroyed" path still shows up in LIST. Report each path's real
-# status so a leftover metadata entry isn't mistaken for a live secret.
+# status, and its version count, without ever reading the value itself:
+# Terraform's initial scaffold is always exactly version 1 and never
+# rewritten (data_json_wo_version never increments), so a path still on
+# v1 has never been manually populated -- v2+ means a human has written
+# a real value at some point, via a normal put (KV v2 versioning is
+# append-only, so a manual write always bumps the version).
 path_status() {
   local meta current dtime destroyed
   meta=$(read_json "kv/metadata/homelab/$1")
@@ -35,9 +40,11 @@ path_status() {
   dtime=$(echo "$meta" | jq -r --arg v "$current" '.data.versions[$v].deletion_time // ""')
   destroyed=$(echo "$meta" | jq -r --arg v "$current" '.data.versions[$v].destroyed // false')
   if [ "$destroyed" = "true" ] || [ -n "$dtime" ]; then
-    echo "soft-deleted"
+    echo "soft-deleted, v${current}"
+  elif [ "$current" = "1" ]; then
+    echo "live, v1 (never manually populated)"
   else
-    echo "live"
+    echo "live, v${current} (manually populated at some point)"
   fi
 }
 
