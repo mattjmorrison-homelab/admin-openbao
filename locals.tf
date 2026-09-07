@@ -140,6 +140,10 @@ locals {
     # below. Woodpecker's own discord_webhook_url secret for this repo was
     # never in OpenBao -- confirm/create the real value at this path
     # manually before actions-openbao's fetch can work.
+    # Also grants create/update (not just read) on discord-webhook-url:
+    # this role's own repo writes that one value itself, pulled from
+    # admin-discord's Terraform state via actions-tofu/read-output, so
+    # admin-discord never needs write access to another repo's secrets.
     ui-hdmi-switch-discord = {
       namespace       = "github-runner"
       service_account = "github-runner-workload"
@@ -147,16 +151,23 @@ locals {
         path "kv/data/homelab/ui-hdmi-switch/*" {
           capabilities = ["read"]
         }
+        path "kv/data/homelab/ui-hdmi-switch/discord-webhook-url" {
+          capabilities = ["create", "update"]
+        }
       EOT
     }
 
-    # Same per-purpose-role convention as ui-hdmi-switch-discord above.
+    # Same per-purpose-role convention as ui-hdmi-switch-discord above,
+    # including the same create/update grant on discord-webhook-url.
     graph-hdmi-switch-discord = {
       namespace       = "github-runner"
       service_account = "github-runner-workload"
       policy          = <<-EOT
         path "kv/data/homelab/graph-hdmi-switch/*" {
           capabilities = ["read"]
+        }
+        path "kv/data/homelab/graph-hdmi-switch/discord-webhook-url" {
+          capabilities = ["create", "update"]
         }
       EOT
     }
