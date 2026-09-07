@@ -358,6 +358,20 @@ locals {
         }
       EOT
     }
+
+    # TEMPORARY -- diagnostic-only, delete this role (and
+    # scripts/check-garage-keys.sh + its workflow) once the Garage
+    # access-key-leak check has run. Read-only on exactly the one key
+    # needed to call Garage's admin API; grants nothing else.
+    garage-key-audit = {
+      namespace       = "github-runner"
+      service_account = "github-runner-workload"
+      policy          = <<-EOT
+        path "kv/data/homelab/k8s-garage/admin-token" {
+          capabilities = ["read"]
+        }
+      EOT
+    }
   }
 
   # Service-to-service credentials: the provider generates one, the
