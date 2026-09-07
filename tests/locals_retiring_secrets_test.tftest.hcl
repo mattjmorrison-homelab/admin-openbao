@@ -2,7 +2,7 @@ run "retiring_secrets_lists_exactly_the_confirmed_orphans" {
   command = plan
 
   assert {
-    condition = length(local.retiring_secrets) == 19
+    condition     = length(local.retiring_secrets) == 19
     error_message = "retiring_secrets should list exactly the 19 confirmed-orphaned app/key entries"
   }
 
