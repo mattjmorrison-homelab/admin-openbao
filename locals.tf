@@ -347,51 +347,6 @@ locals {
       EOT
     }
 
-    # Reads its own path plus admin-github's -- both old and new forms of
-    # each, since neither has migrated yet.
-    woodpecker = {
-      namespace       = "woodpecker"
-      service_account = "woodpecker-server"
-      policy          = <<-EOT
-        path "kv/data/homelab/woodpecker" {
-          capabilities = ["read"]
-        }
-        path "kv/data/homelab/woodpecker/*" {
-          capabilities = ["read"]
-        }
-        path "kv/data/homelab/homelab-woodpecker/*" {
-          capabilities = ["read"]
-        }
-        path "kv/data/homelab/gh-org" {
-          capabilities = ["read"]
-        }
-        path "kv/data/homelab/gh-org/*" {
-          capabilities = ["read"]
-        }
-        path "kv/data/homelab/admin-github/*" {
-          capabilities = ["read"]
-        }
-      EOT
-    }
-
-    # Separate identity from woodpecker's own role because it needs write
-    # access to mint VAULT_TOKEN, not just read -- same path either way.
-    woodpecker-bootstrap = {
-      namespace       = "woodpecker"
-      service_account = "woodpecker-bootstrap"
-      policy          = <<-EOT
-        path "kv/data/homelab/woodpecker" {
-          capabilities = ["read", "create", "update"]
-        }
-        path "kv/data/homelab/woodpecker/*" {
-          capabilities = ["read", "create", "update"]
-        }
-        path "kv/data/homelab/homelab-woodpecker/*" {
-          capabilities = ["read", "create", "update"]
-        }
-      EOT
-    }
-
     # Old state spans two separate paths (cloudflare, tunnel) that the new
     # scheme consolidates into one -- this role only ever read the
     # `cloudflare` one, so only that old path is granted here.
