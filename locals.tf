@@ -32,6 +32,9 @@ locals {
         path "kv/data/homelab/homelab-alertmanager/*" {
           capabilities = ["read"]
         }
+        path "kv/data/homelab/k8s-alertmanager/*" {
+          capabilities = ["read"]
+        }
       EOT
     }
 
@@ -45,6 +48,9 @@ locals {
         # k8s-zot and the real value has been manually copied over, then
         # drop them in a follow-up.
         path "kv/data/homelab/k8s-zot" {
+          capabilities = ["read"]
+        }
+        path "kv/data/homelab/k8s-zot/*" {
           capabilities = ["read"]
         }
         path "kv/data/homelab/zot" {
@@ -73,6 +79,9 @@ locals {
           capabilities = ["read"]
         }
         path "kv/data/homelab/homelab-argocd-image-updater/*" {
+          capabilities = ["read"]
+        }
+        path "kv/data/homelab/k8s-argocd-image-updater/*" {
           capabilities = ["read"]
         }
       EOT
@@ -251,15 +260,16 @@ locals {
         path "kv/data/homelab/homelab-cert-manager-config/*" {
           capabilities = ["read"]
         }
+        path "kv/data/homelab/k8s-cert-manager-config/*" {
+          capabilities = ["read"]
+        }
       EOT
     }
 
-    # Both notifications and webhook secrets belong to the same repo
-    # (homelab-argocd, renamed to k8s-argocd), so the homelab-argocd path
-    # is shared even though they're two different roles/ServiceAccounts
-    # reading two different old paths. Only this role has picked up the
-    # new k8s-argocd path so far -- argocd-webhook still only grants the
-    # old homelab-argocd path.
+    # notifications, webhook, and repo-creds-oci secrets all belong to the
+    # same repo (homelab-argocd, renamed to k8s-argocd), so the
+    # homelab-argocd path is shared even though they're three different
+    # roles/ServiceAccounts reading from it.
     argocd-notifications = {
       namespace       = "argocd"
       service_account = "argocd-notifications-controller"
@@ -308,6 +318,9 @@ locals {
         path "kv/data/homelab/homelab-argocd/*" {
           capabilities = ["read"]
         }
+        path "kv/data/homelab/k8s-argocd/*" {
+          capabilities = ["read"]
+        }
       EOT
     }
 
@@ -326,6 +339,9 @@ locals {
           capabilities = ["read"]
         }
         path "kv/data/homelab/argocd/*" {
+          capabilities = ["read"]
+        }
+        path "kv/data/homelab/k8s-argocd/*" {
           capabilities = ["read"]
         }
       EOT
@@ -363,6 +379,9 @@ locals {
         path "kv/data/homelab/homelab-cloudflare/*" {
           capabilities = ["read"]
         }
+        path "kv/data/homelab/k8s-cloudflare/*" {
+          capabilities = ["read"]
+        }
       EOT
     }
 
@@ -386,6 +405,9 @@ locals {
           capabilities = ["read", "create", "update"]
         }
         path "kv/data/homelab/homelab-cloudflare/*" {
+          capabilities = ["read", "create", "update"]
+        }
+        path "kv/data/homelab/k8s-cloudflare/*" {
           capabilities = ["read", "create", "update"]
         }
       EOT
@@ -489,12 +511,16 @@ locals {
   # independently of the Vault path.
   secrets = concat(local.service_secrets, flatten([
     for app, keys in {
+      # Stale homelab-* prefix, kept until the secret-migration-map.md
+      # "prefix rename" apps actually migrate -- see that doc. The
+      # correctly-prefixed k8s-* entries below are the new scaffold for
+      # the same secrets, added alongside these, not replacing them yet.
       homelab-alertmanager         = ["discord-webhook-url"]
       homelab-zot                  = ["htpasswd"]
       homelab-argocd-image-updater = ["zot-ci-password"]
       k8s-hdmi-switch              = ["zot-ci-password"]
       homelab-cert-manager-config  = ["cloudflare-api-token"]
-      k8s-argocd                   = ["discord-webhook-url", "github-webhook-secret"]
+      k8s-argocd                   = ["discord-webhook-url", "github-webhook-secret", "zot-ci-password"]
       homelab-argocd               = ["discord-webhook-url", "github-webhook-secret"]
       homelab-prometheus           = ["woodpecker-prometheus-auth-token"]
       k8s-graphql-router           = ["zot-ci-password"]
@@ -502,14 +528,22 @@ locals {
       homelab-woodpecker           = ["github-client", "github-secret", "agent-secret", "vault-token", "prometheus-auth-token", "zot-ci-password"]
       homelab-cloudflare           = ["account-tag", "tunnel-id", "tunnel-secret", "cloudflare-api-token", "cf-account-id"]
       k8s-garage                   = ["rpc-secret", "admin-token", "metrics-token"]
-      admin-github                 = ["github-token", "tofu-state-access-key-id", "tofu-state-secret-access-key"]
-      k8s-github-runner            = ["github-app-id", "github-app-installation-id", "github-app-private-key", "zot-ci-password"]
-      ui-hdmi-switch               = ["discord-webhook-url"]
-      graph-hdmi-switch            = ["discord-webhook-url"]
-      admin-discord                = ["discord-bot-token"]
-      pi-health                    = ["ssh-private-key"]
-      pi                           = ["pi1/private-key", "pizero/private-key", "pi5-8/private-key", "pi5-16/private-key", "k3s-join-token"]
-      homelab                      = ["zot-readonly-password"]
+
+      # New, correctly-prefixed scaffolds for apps still on a stale
+      # homelab-* entry above -- see secret-migration-map.md.
+      k8s-alertmanager         = ["discord-webhook-url", "downtime-webhook-url"]
+      k8s-zot                  = ["htpasswd"]
+      k8s-argocd-image-updater = ["zot-ci-password"]
+      k8s-cert-manager-config  = ["cloudflare-api-token"]
+      k8s-cloudflare           = ["account-tag", "tunnel-id", "tunnel-secret", "cloudflare-api-token", "cf-account-id"]
+      admin-github             = ["github-token", "tofu-state-access-key-id", "tofu-state-secret-access-key"]
+      k8s-github-runner        = ["github-app-id", "github-app-installation-id", "github-app-private-key", "zot-ci-password"]
+      ui-hdmi-switch           = ["discord-webhook-url"]
+      graph-hdmi-switch        = ["discord-webhook-url"]
+      admin-discord            = ["discord-bot-token"]
+      pi-health                = ["ssh-private-key"]
+      pi                       = ["pi1/private-key", "pizero/private-key", "pi5-8/private-key", "pi5-16/private-key", "k3s-join-token"]
+      homelab                  = ["zot-readonly-password"]
       } : [
       for key in keys : {
         app = app
