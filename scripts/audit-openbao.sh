@@ -85,6 +85,22 @@ while IFS= read -r role; do
   echo
 done < <(list "auth/approle/role")
 
+echo "## Live tokens carrying a policy with no matching role"
+echo
+while IFS= read -r accessor; do
+  [ -z "$accessor" ] && continue
+  info=$(curl -sf -H "X-Vault-Token: $VAULT_TOKEN" -X POST \
+    -d "{\"accessor\": \"$accessor\"}" \
+    "$VAULT_ADDR/v1/auth/token/lookup-accessor" 2>/dev/null)
+  policies=$(echo "$info" | jq -r '.data.policies // [] | join(",")')
+  case "$policies" in
+    *woodpecker-pipelines* | *certmanager*)
+      echo "$info" | jq '.data | {accessor, policies, display_name, creation_time, ttl, expire_time}'
+      ;;
+  esac
+done < <(list "auth/token/accessors")
+echo
+
 echo "## ACL policies"
 echo
 while IFS= read -r policy; do
