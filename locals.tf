@@ -23,15 +23,6 @@ locals {
       namespace       = "monitoring"
       service_account = "alertmanager"
       policy          = <<-EOT
-        path "kv/data/homelab/alertmanager" {
-          capabilities = ["read"]
-        }
-        path "kv/data/homelab/alertmanager/*" {
-          capabilities = ["read"]
-        }
-        path "kv/data/homelab/homelab-alertmanager/*" {
-          capabilities = ["read"]
-        }
         path "kv/data/homelab/k8s-alertmanager/*" {
           capabilities = ["read"]
         }
@@ -42,24 +33,10 @@ locals {
       namespace       = "zot"
       service_account = "zot"
       policy          = <<-EOT
-        # k8s-zot is the current name; the bare "zot"/"zot/*" grants below
-        # are legacy (repo was renamed from homelab-zot) -- keep them
-        # until the htpasswd ExternalSecret is confirmed reading from
-        # k8s-zot and the real value has been manually copied over, then
-        # drop them in a follow-up.
         path "kv/data/homelab/k8s-zot" {
           capabilities = ["read"]
         }
         path "kv/data/homelab/k8s-zot/*" {
-          capabilities = ["read"]
-        }
-        path "kv/data/homelab/zot" {
-          capabilities = ["read"]
-        }
-        path "kv/data/homelab/zot/*" {
-          capabilities = ["read"]
-        }
-        path "kv/data/homelab/homelab-zot/*" {
           capabilities = ["read"]
         }
         path "kv/data/homelab/service/k8s-zot/*" {
@@ -72,15 +49,6 @@ locals {
       namespace       = "argocd"
       service_account = "argocd-image-updater-controller"
       policy          = <<-EOT
-        path "kv/data/homelab/argocd-image-updater" {
-          capabilities = ["read"]
-        }
-        path "kv/data/homelab/argocd-image-updater/*" {
-          capabilities = ["read"]
-        }
-        path "kv/data/homelab/homelab-argocd-image-updater/*" {
-          capabilities = ["read"]
-        }
         path "kv/data/homelab/k8s-argocd-image-updater/*" {
           capabilities = ["read"]
         }
@@ -251,38 +219,16 @@ locals {
       namespace       = "cert-manager"
       service_account = "homelab-cert-manager"
       policy          = <<-EOT
-        path "kv/data/homelab/certmanager" {
-          capabilities = ["read"]
-        }
-        path "kv/data/homelab/certmanager/*" {
-          capabilities = ["read"]
-        }
-        path "kv/data/homelab/homelab-cert-manager-config/*" {
-          capabilities = ["read"]
-        }
         path "kv/data/homelab/k8s-cert-manager-config/*" {
           capabilities = ["read"]
         }
       EOT
     }
 
-    # notifications, webhook, and repo-creds-oci secrets all belong to the
-    # same repo (homelab-argocd, renamed to k8s-argocd), so the
-    # homelab-argocd path is shared even though they're three different
-    # roles/ServiceAccounts reading from it.
     argocd-notifications = {
       namespace       = "argocd"
       service_account = "argocd-notifications-controller"
       policy          = <<-EOT
-        path "kv/data/homelab/argocd-notifications" {
-          capabilities = ["read"]
-        }
-        path "kv/data/homelab/argocd-notifications/*" {
-          capabilities = ["read"]
-        }
-        path "kv/data/homelab/homelab-argocd/*" {
-          capabilities = ["read"]
-        }
         path "kv/data/homelab/k8s-argocd/*" {
           capabilities = ["read"]
         }
@@ -309,15 +255,6 @@ locals {
       namespace       = "argocd"
       service_account = "argocd-webhook-secret"
       policy          = <<-EOT
-        path "kv/data/homelab/argocd" {
-          capabilities = ["read"]
-        }
-        path "kv/data/homelab/argocd/*" {
-          capabilities = ["read"]
-        }
-        path "kv/data/homelab/homelab-argocd/*" {
-          capabilities = ["read"]
-        }
         path "kv/data/homelab/k8s-argocd/*" {
           capabilities = ["read"]
         }
@@ -335,12 +272,6 @@ locals {
       namespace       = "argocd"
       service_account = "argocd-repo-creds-oci-secret"
       policy          = <<-EOT
-        path "kv/data/homelab/argocd" {
-          capabilities = ["read"]
-        }
-        path "kv/data/homelab/argocd/*" {
-          capabilities = ["read"]
-        }
         path "kv/data/homelab/k8s-argocd/*" {
           capabilities = ["read"]
         }
@@ -363,50 +294,20 @@ locals {
       EOT
     }
 
-    # Old state spans two separate paths (cloudflare, tunnel) that the new
-    # scheme consolidates into one -- this role only ever read the
-    # `cloudflare` one, so only that old path is granted here.
     cloudflare = {
       namespace       = "cloudflare"
       service_account = "cloudflare"
       policy          = <<-EOT
-        path "kv/data/homelab/cloudflare" {
-          capabilities = ["read"]
-        }
-        path "kv/data/homelab/cloudflare/*" {
-          capabilities = ["read"]
-        }
-        path "kv/data/homelab/homelab-cloudflare/*" {
-          capabilities = ["read"]
-        }
         path "kv/data/homelab/k8s-cloudflare/*" {
           capabilities = ["read"]
         }
       EOT
     }
 
-    # Reads its own old path (tunnel) and writes the other old path
-    # (cloudflare) to mint credentials -- both consolidate into the same
-    # new homelab-cloudflare path.
     cloudflare-bootstrap = {
       namespace       = "cloudflare"
       service_account = "cloudflare-bootstrap"
       policy          = <<-EOT
-        path "kv/data/homelab/tunnel" {
-          capabilities = ["read"]
-        }
-        path "kv/data/homelab/tunnel/*" {
-          capabilities = ["read"]
-        }
-        path "kv/data/homelab/cloudflare" {
-          capabilities = ["read", "create", "update"]
-        }
-        path "kv/data/homelab/cloudflare/*" {
-          capabilities = ["read", "create", "update"]
-        }
-        path "kv/data/homelab/homelab-cloudflare/*" {
-          capabilities = ["read", "create", "update"]
-        }
         path "kv/data/homelab/k8s-cloudflare/*" {
           capabilities = ["read", "create", "update"]
         }
