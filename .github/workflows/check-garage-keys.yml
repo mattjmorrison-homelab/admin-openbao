@@ -1,0 +1,14 @@
+name: Check Garage keys for leakage
+
+on:
+  workflow_dispatch: {}
+
+env:
+  VAULT_ADDR: http://k8s-openbao.openbao.svc:8200
+
+jobs:
+  check:
+    runs-on: k8s-amd64
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - run: bash scripts/check-garage-keys.sh | tee "$GITHUB_STEP_SUMMARY"
