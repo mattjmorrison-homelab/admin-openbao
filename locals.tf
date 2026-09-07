@@ -331,21 +331,6 @@ locals {
       EOT
     }
 
-    # Consumer side: k8s-garage's CI (github-runner-workload, same shared
-    # identity as k8s-lib-ci-rbac-publish/pi-health-deploy) reads exactly
-    # its one credential to log into the registry before `helm dependency
-    # build`. Scoped to this one cred, not all of
-    # service/k8s-zot/k8s-garage/*, since that's all this role needs.
-    k8s-garage-pull-helm-libs = {
-      namespace       = "github-runner"
-      service_account = "github-runner-workload"
-      policy          = <<-EOT
-        path "kv/data/homelab/service/k8s-zot/k8s-garage/pull-helm-libs" {
-          capabilities = ["read"]
-        }
-      EOT
-    }
-
     # Mints its own rpc/admin/metrics secrets, and separately writes the
     # tofu-state bucket's access key into admin-github's path -- a real
     # cross-repo grant, not a mistake. Both old and new forms of each.
@@ -380,14 +365,11 @@ locals {
   # kv/homelab/service/<provider>/<consumer>/<cred> -- one path per
   # secret, folded into `secrets` below via the same {app, key} shape
   # every other entry uses (app = "service/<provider>/<consumer>", key =
-  # <cred>), so secrets.tf needs no changes to scaffold these too.
-  service_credentials = [
-    {
-      provider = "k8s-zot"
-      consumer = "k8s-garage"
-      cred     = "pull-helm-libs"
-    },
-  ]
+  # <cred>), so secrets.tf needs no changes to scaffold these too. No
+  # entries currently -- the one that used to be here
+  # (k8s-zot -> k8s-garage, pull-helm-libs) was never wired up to
+  # anything and was retired, see retiring_secrets below.
+  service_credentials = []
 
   service_secrets = [
     for sc in local.service_credentials : {
@@ -412,26 +394,17 @@ locals {
   # independently of the Vault path.
   secrets = concat(local.service_secrets, flatten([
     for app, keys in {
-      # Stale homelab-* prefix, kept until the secret-migration-map.md
-      # "prefix rename" apps actually migrate -- see that doc. The
-      # correctly-prefixed k8s-* entries below are the new scaffold for
-      # the same secrets, added alongside these, not replacing them yet.
-      homelab-alertmanager         = ["discord-webhook-url"]
-      homelab-zot                  = ["htpasswd"]
-      homelab-argocd-image-updater = ["zot-ci-password"]
-      k8s-hdmi-switch              = ["zot-ci-password"]
-      homelab-cert-manager-config  = ["cloudflare-api-token"]
-      k8s-argocd                   = ["discord-webhook-url", "github-webhook-secret", "zot-ci-password"]
-      homelab-argocd               = ["discord-webhook-url", "github-webhook-secret"]
-      homelab-prometheus           = ["woodpecker-prometheus-auth-token"]
-      k8s-graphql-router           = ["zot-ci-password"]
-      k8s-lib-ci-rbac              = ["zot-ci-password"]
-      homelab-woodpecker           = ["github-client", "github-secret", "agent-secret", "vault-token", "prometheus-auth-token", "zot-ci-password"]
-      homelab-cloudflare           = ["account-tag", "tunnel-id", "tunnel-secret", "cloudflare-api-token", "cf-account-id"]
-      k8s-garage                   = ["rpc-secret", "admin-token", "metrics-token"]
+      # k8s-graphql-router's ExternalSecret still reads the old
+      # homelab/graphql-router bare-name path -- not yet migrated to its
+      # own per-key path here, unlike the apps this map used to also
+      # scaffold a stale homelab-* prefix for (all retired, see
+      # retiring_secrets below and admin-openbao#27/#28).
+      k8s-hdmi-switch    = ["zot-ci-password"]
+      k8s-argocd         = ["discord-webhook-url", "github-webhook-secret", "zot-ci-password"]
+      k8s-graphql-router = ["zot-ci-password"]
+      k8s-lib-ci-rbac    = ["zot-ci-password"]
+      k8s-garage         = ["rpc-secret", "admin-token", "metrics-token"]
 
-      # New, correctly-prefixed scaffolds for apps still on a stale
-      # homelab-* entry above -- see secret-migration-map.md.
       k8s-alertmanager         = ["discord-webhook-url", "downtime-webhook-url"]
       k8s-zot                  = ["htpasswd"]
       k8s-argocd-image-updater = ["zot-ci-password"]
