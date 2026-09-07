@@ -67,11 +67,11 @@ run "roles_grant_the_new_paths_too" {
     error_message = "cloudflare-bootstrap role must grant k8s-cloudflare/*"
   }
   assert {
-    condition     = strcontains(local.roles["argocd-webhook"].policy, "kv/data/homelab/k8s-argocd/*")
-    error_message = "argocd-webhook role must grant k8s-argocd/* (github-webhook-secret lives there)"
+    condition     = strcontains(local.roles["argocd-webhook"].policy, "kv/data/homelab/k8s-argocd/github-webhook-secret")
+    error_message = "argocd-webhook role must grant its own exact key, k8s-argocd/github-webhook-secret"
   }
   assert {
-    condition     = strcontains(local.roles["argocd-repo-creds-oci"].policy, "kv/data/homelab/k8s-argocd/*")
-    error_message = "argocd-repo-creds-oci role must grant k8s-argocd/* (zot-ci-password lives there)"
+    condition     = strcontains(local.roles["argocd-repo-creds-oci"].policy, "kv/data/homelab/k8s-argocd/zot-ci-password")
+    error_message = "argocd-repo-creds-oci role must grant its own exact key, k8s-argocd/zot-ci-password"
   }
 }
