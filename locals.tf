@@ -452,4 +452,37 @@ locals {
       }
     ]
   ]))
+
+  # "<app>/<key>" entries confirmed to have zero real consumers anywhere
+  # (checked ExternalSecrets, CI workflows, and bootstrap scripts across
+  # every repo, not just Vault policy grants -- some real secrets are
+  # read via constructed paths a static grant/reference check alone would
+  # miss). Referenced only by secrets.tf's prevent_destroy override below,
+  # step 1 of a two-step retirement: this list lifts the destroy guard for
+  # exactly these keys (no resource diff yet), then a follow-up PR removes
+  # them from `secrets` above once the real OpenBao values are deleted
+  # manually. Once that follow-up PR merges, this list (and the
+  # prevent_destroy override referencing it) should be deleted too --
+  # don't leave it behind as permanent scaffolding.
+  retiring_secrets = [
+    "service/k8s-zot/k8s-garage/pull-helm-libs",
+    "homelab-alertmanager/discord-webhook-url",
+    "homelab-zot/htpasswd",
+    "homelab-argocd-image-updater/zot-ci-password",
+    "homelab-cert-manager-config/cloudflare-api-token",
+    "homelab-argocd/discord-webhook-url",
+    "homelab-argocd/github-webhook-secret",
+    "homelab-prometheus/woodpecker-prometheus-auth-token",
+    "homelab-woodpecker/github-client",
+    "homelab-woodpecker/github-secret",
+    "homelab-woodpecker/agent-secret",
+    "homelab-woodpecker/vault-token",
+    "homelab-woodpecker/prometheus-auth-token",
+    "homelab-woodpecker/zot-ci-password",
+    "homelab-cloudflare/account-tag",
+    "homelab-cloudflare/tunnel-id",
+    "homelab-cloudflare/tunnel-secret",
+    "homelab-cloudflare/cloudflare-api-token",
+    "homelab-cloudflare/cf-account-id",
+  ]
 }
