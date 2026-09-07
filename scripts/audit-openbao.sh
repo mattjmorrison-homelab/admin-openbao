@@ -55,6 +55,11 @@ walk_kv_keys() {
   done < <(list "kv/metadata/homelab/${prefix}")
 }
 
+echo "## Enabled auth methods"
+echo
+read_json "sys/auth" | jq -r '.data | to_entries[] | "\(.key): \(.value.type)"'
+echo
+
 echo "## Secret paths (kv/homelab/*)"
 echo
 walk_kv_keys ""
@@ -66,9 +71,19 @@ while IFS= read -r role; do
   [ -z "$role" ] && continue
   echo "### $role"
   read_json "auth/kubernetes/role/$role" \
-    | jq '{bound_service_account_names, bound_service_account_namespaces, token_policies}'
+    | jq '.data | {bound_service_account_names, bound_service_account_namespaces, token_policies}'
   echo
 done < <(list "auth/kubernetes/role")
+
+echo "## AppRole auth roles"
+echo
+while IFS= read -r role; do
+  [ -z "$role" ] && continue
+  echo "### $role"
+  read_json "auth/approle/role/$role" \
+    | jq '.data | {token_policies, token_ttl, token_max_ttl, secret_id_ttl, secret_id_num_uses}'
+  echo
+done < <(list "auth/approle/role")
 
 echo "## ACL policies"
 echo
