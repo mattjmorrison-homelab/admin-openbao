@@ -334,15 +334,17 @@ locals {
       EOT
     }
 
-    # PostSync verify Job's identity -- read-only on exactly the one
-    # plaintext credential it exists to use for a real authenticated
-    # request against Zot, catching a broken htpasswd merge (empty or
-    # missing ci-readonly entry) immediately instead of silently.
+    # PostSync verify Job's identity -- read-only on its own dedicated
+    # Zot service-credential (a normal serviceConsumers entry, same
+    # mechanism as every other real consumer, not a shared account like
+    # ci-readonly). Catches a broken htpasswd merge (empty or missing
+    # entry) immediately via a real authenticated request, instead of
+    # silently.
     zot-verify = {
       namespace       = "zot"
       service_account = "zot-verify"
       policy          = <<-EOT
-        path "kv/data/homelab/k8s-zot/ci-readonly-password" {
+        path "kv/data/homelab/service/k8s-zot/zot-verify/verify-password" {
           capabilities = ["read"]
         }
       EOT
@@ -407,6 +409,7 @@ locals {
     { provider = "k8s-zot", consumer = "graph-router", cred = "zot-publish" },
     { provider = "k8s-zot", consumer = "graph-hdmi-switch", cred = "zot-publish" },
     { provider = "k8s-zot", consumer = "ui-hdmi-switch", cred = "zot-publish" },
+    { provider = "k8s-zot", consumer = "zot-verify", cred = "verify-password" },
   ]
 
   service_secrets = [
@@ -443,15 +446,8 @@ locals {
       k8s-lib-ci-rbac    = ["zot-ci-password"]
       k8s-garage         = ["rpc-secret", "admin-token", "metrics-token"]
 
-      k8s-alertmanager = ["discord-webhook-url", "downtime-webhook-url"]
-      # ci-readonly-password is a deliberate second copy of a password
-      # that also exists (bcrypt-hashed, one-way) inside htpasswd's
-      # combined blob above -- plaintext, solely so zot-verify's
-      # PostSync check can make a real authenticated request and catch
-      # the exact class of outage a broken htpasswd merge previously
-      # caused (see k8s-zot#5's revert). Must be kept in sync manually
-      # with whatever ci-readonly's real password actually is.
-      k8s-zot                  = ["htpasswd", "ci-readonly-password"]
+      k8s-alertmanager         = ["discord-webhook-url", "downtime-webhook-url"]
+      k8s-zot                  = ["htpasswd"]
       k8s-argocd-image-updater = ["zot-ci-password"]
       k8s-cert-manager-config  = ["cloudflare-api-token"]
       k8s-cloudflare           = ["account-tag", "tunnel-id", "tunnel-secret", "cloudflare-api-token", "cf-account-id"]

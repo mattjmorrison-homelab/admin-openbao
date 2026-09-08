@@ -1,4 +1,4 @@
-run "zot_verify_role_is_read_only_and_scoped_to_ci_readonly_password" {
+run "zot_verify_role_is_read_only_and_scoped_to_its_own_dedicated_credential" {
   command = plan
 
   assert {
@@ -12,8 +12,8 @@ run "zot_verify_role_is_read_only_and_scoped_to_ci_readonly_password" {
   }
 
   assert {
-    condition     = strcontains(local.roles["zot-verify"].policy, "kv/data/homelab/k8s-zot/ci-readonly-password")
-    error_message = "zot-verify policy must grant read on exactly k8s-zot/ci-readonly-password"
+    condition     = strcontains(local.roles["zot-verify"].policy, "kv/data/homelab/service/k8s-zot/zot-verify/verify-password")
+    error_message = "zot-verify policy must grant read on its own dedicated service-credential path, not a shared account like ci-readonly"
   }
 
   assert {
@@ -22,16 +22,16 @@ run "zot_verify_role_is_read_only_and_scoped_to_ci_readonly_password" {
   }
 
   assert {
-    condition     = !strcontains(local.roles["zot-verify"].policy, "htpasswd")
-    error_message = "zot-verify must not be able to read the htpasswd blob itself -- only the separate plaintext test credential"
+    condition     = !strcontains(local.roles["zot-verify"].policy, "ci-readonly")
+    error_message = "zot-verify must never grant access to ci-readonly's own credential -- that would be exactly the shared-account pattern this whole effort exists to eliminate"
   }
 }
 
-run "ci_readonly_password_scaffolded_alongside_htpasswd" {
+run "zot_verify_service_credential_scaffolded" {
   command = plan
 
   assert {
-    condition     = contains([for s in local.secrets : "${s.app}/${s.key}"], "k8s-zot/ci-readonly-password")
-    error_message = "local.secrets must scaffold k8s-zot/ci-readonly-password"
+    condition     = contains([for s in local.secrets : "${s.app}/${s.key}"], "service/k8s-zot/zot-verify/verify-password")
+    error_message = "local.secrets must scaffold zot-verify's own dedicated service credential"
   }
 }
