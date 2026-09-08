@@ -229,7 +229,7 @@ locals {
       namespace       = "argocd"
       service_account = "argocd-notifications-controller"
       policy          = <<-EOT
-        path "kv/data/homelab/k8s-argocd/*" {
+        path "kv/data/homelab/k8s-argocd/discord-webhook-url" {
           capabilities = ["read"]
         }
       EOT
@@ -255,7 +255,7 @@ locals {
       namespace       = "argocd"
       service_account = "argocd-webhook-secret"
       policy          = <<-EOT
-        path "kv/data/homelab/k8s-argocd/*" {
+        path "kv/data/homelab/k8s-argocd/github-webhook-secret" {
           capabilities = ["read"]
         }
       EOT
@@ -272,7 +272,7 @@ locals {
       namespace       = "argocd"
       service_account = "argocd-repo-creds-oci-secret"
       policy          = <<-EOT
-        path "kv/data/homelab/k8s-argocd/*" {
+        path "kv/data/homelab/k8s-argocd/zot-ci-password" {
           capabilities = ["read"]
         }
       EOT

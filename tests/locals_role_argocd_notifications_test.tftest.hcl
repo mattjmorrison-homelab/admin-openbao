@@ -1,4 +1,4 @@
-run "argocd_notifications_policy_grants_only_new_argocd_path" {
+run "argocd_notifications_policy_grants_only_its_own_exact_key" {
   command = plan
 
   assert {
@@ -7,7 +7,12 @@ run "argocd_notifications_policy_grants_only_new_argocd_path" {
   }
 
   assert {
-    condition     = strcontains(local.roles["argocd-notifications"].policy, "kv/data/homelab/k8s-argocd/*")
-    error_message = "argocd-notifications policy must grant the new path kv/data/homelab/k8s-argocd/*"
+    condition     = strcontains(local.roles["argocd-notifications"].policy, "kv/data/homelab/k8s-argocd/discord-webhook-url")
+    error_message = "argocd-notifications policy must grant its own exact key, k8s-argocd/discord-webhook-url"
+  }
+
+  assert {
+    condition     = !strcontains(local.roles["argocd-notifications"].policy, "kv/data/homelab/k8s-argocd/*")
+    error_message = "argocd-notifications policy must not grant the k8s-argocd/* wildcard -- it should only read its own key, not github-webhook-secret or zot-ci-password too"
   }
 }
