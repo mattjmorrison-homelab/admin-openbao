@@ -333,27 +333,20 @@ locals {
 
     # Mints its own rpc/admin/metrics secrets, and separately writes the
     # tofu-state bucket's access key into admin-github's path -- a real
-    # cross-repo grant, not a mistake. Both old and new forms of each.
+    # cross-repo grant, not a mistake. Scoped to the 2 exact keys its own
+    # bootstrap script touches (not a wildcard) -- read is needed because
+    # the script's idempotency check reads before writing.
     garage = {
       namespace       = "garage"
       service_account = "garage"
       policy          = <<-EOT
-        path "kv/data/homelab/garage" {
-          capabilities = ["read", "create", "update"]
-        }
-        path "kv/data/homelab/garage/*" {
-          capabilities = ["read", "create", "update"]
-        }
         path "kv/data/homelab/k8s-garage/*" {
           capabilities = ["read", "create", "update"]
         }
-        path "kv/data/homelab/gh-org" {
+        path "kv/data/homelab/admin-github/tofu-state-access-key-id" {
           capabilities = ["read", "create", "update"]
         }
-        path "kv/data/homelab/gh-org/*" {
-          capabilities = ["read", "create", "update"]
-        }
-        path "kv/data/homelab/admin-github/*" {
+        path "kv/data/homelab/admin-github/tofu-state-secret-access-key" {
           capabilities = ["read", "create", "update"]
         }
       EOT
