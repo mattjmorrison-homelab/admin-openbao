@@ -20,4 +20,9 @@ run "zot_bootstrap_role_writes_its_own_service_subtree_only" {
     condition     = !strcontains(local.roles["zot-bootstrap"].policy, "service/k8s-garage")
     error_message = "zot-bootstrap policy must not name a specific consumer path directly -- the wildcard already covers it"
   }
+
+  assert {
+    condition     = strcontains(local.roles["zot-bootstrap"].policy, "kv/data/homelab/k8s-zot/htpasswd")
+    error_message = "zot-bootstrap policy must grant read/create/update on k8s-zot/htpasswd -- needed to fetch the legacy blob and write the merged one back"
+  }
 }
