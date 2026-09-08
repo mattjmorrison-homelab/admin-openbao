@@ -328,6 +328,9 @@ locals {
         path "kv/data/homelab/service/k8s-zot/*" {
           capabilities = ["read", "create", "update"]
         }
+        path "kv/data/homelab/k8s-zot/htpasswd" {
+          capabilities = ["read", "create", "update"]
+        }
       EOT
     }
 
@@ -372,11 +375,25 @@ locals {
   # kv/homelab/service/<provider>/<consumer>/<cred> -- one path per
   # secret, folded into `secrets` below via the same {app, key} shape
   # every other entry uses (app = "service/<provider>/<consumer>", key =
-  # <cred>), so secrets.tf needs no changes to scaffold these too. No
-  # entries currently -- the one that used to be here
-  # (k8s-zot -> k8s-garage, pull-helm-libs) was never wired up to
-  # anything and was retired, see retiring_secrets below.
-  service_credentials = []
+  # <cred>), so secrets.tf needs no changes to scaffold these too.
+  #
+  # Scaffolded here (blank) BEFORE k8s-zot's own values.yaml registers
+  # these as serviceConsumers -- deliberately, so Terraform's one-time
+  # blank write happens first. If k8s-zot's bootstrap script wrote a
+  # real password before this ever applied, this resource's first-ever
+  # write (which only ever happens once, ever) would create a new blank
+  # version on top of it, silently superseding the real one.
+  service_credentials = [
+    { provider = "k8s-zot", consumer = "k8s-garage", cred = "pull-helm-libs" },
+    { provider = "k8s-zot", consumer = "k8s-graphql-router", cred = "zot-pull" },
+    { provider = "k8s-zot", consumer = "k8s-hdmi-switch", cred = "zot-pull" },
+    { provider = "k8s-zot", consumer = "k8s-argocd", cred = "zot-pull" },
+    { provider = "k8s-zot", consumer = "k8s-argocd-image-updater", cred = "zot-pull" },
+    { provider = "k8s-zot", consumer = "k8s-lib-ci-rbac", cred = "zot-publish" },
+    { provider = "k8s-zot", consumer = "graph-router", cred = "zot-publish" },
+    { provider = "k8s-zot", consumer = "graph-hdmi-switch", cred = "zot-publish" },
+    { provider = "k8s-zot", consumer = "ui-hdmi-switch", cred = "zot-publish" },
+  ]
 
   service_secrets = [
     for sc in local.service_credentials : {
@@ -404,8 +421,8 @@ locals {
       # k8s-graphql-router's ExternalSecret still reads the old
       # homelab/graphql-router bare-name path -- not yet migrated to its
       # own per-key path here, unlike the apps this map used to also
-      # scaffold a stale homelab-* prefix for (all retired, see
-      # retiring_secrets below and admin-openbao#27/#28).
+      # scaffold a stale homelab-* prefix for (all retired for real, see
+      # admin-openbao#27/#28).
       k8s-hdmi-switch    = ["zot-ci-password"]
       k8s-argocd         = ["discord-webhook-url", "github-webhook-secret", "zot-ci-password"]
       k8s-graphql-router = ["zot-ci-password"]
@@ -433,36 +450,4 @@ locals {
     ]
   ]))
 
-  # "<app>/<key>" entries confirmed to have zero real consumers anywhere
-  # (checked ExternalSecrets, CI workflows, and bootstrap scripts across
-  # every repo, not just Vault policy grants -- some real secrets are
-  # read via constructed paths a static grant/reference check alone would
-  # miss). Referenced only by secrets.tf's prevent_destroy override below,
-  # step 1 of a two-step retirement: this list lifts the destroy guard for
-  # exactly these keys (no resource diff yet), then a follow-up PR removes
-  # them from `secrets` above once the real OpenBao values are deleted
-  # manually. Once that follow-up PR merges, this list (and the
-  # prevent_destroy override referencing it) should be deleted too --
-  # don't leave it behind as permanent scaffolding.
-  retiring_secrets = [
-    "service/k8s-zot/k8s-garage/pull-helm-libs",
-    "homelab-alertmanager/discord-webhook-url",
-    "homelab-zot/htpasswd",
-    "homelab-argocd-image-updater/zot-ci-password",
-    "homelab-cert-manager-config/cloudflare-api-token",
-    "homelab-argocd/discord-webhook-url",
-    "homelab-argocd/github-webhook-secret",
-    "homelab-prometheus/woodpecker-prometheus-auth-token",
-    "homelab-woodpecker/github-client",
-    "homelab-woodpecker/github-secret",
-    "homelab-woodpecker/agent-secret",
-    "homelab-woodpecker/vault-token",
-    "homelab-woodpecker/prometheus-auth-token",
-    "homelab-woodpecker/zot-ci-password",
-    "homelab-cloudflare/account-tag",
-    "homelab-cloudflare/tunnel-id",
-    "homelab-cloudflare/tunnel-secret",
-    "homelab-cloudflare/cloudflare-api-token",
-    "homelab-cloudflare/cf-account-id",
-  ]
 }
