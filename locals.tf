@@ -334,6 +334,20 @@ locals {
       EOT
     }
 
+    # PostSync verify Job's identity -- read-only on exactly the one
+    # plaintext credential it exists to use for a real authenticated
+    # request against Zot, catching a broken htpasswd merge (empty or
+    # missing ci-readonly entry) immediately instead of silently.
+    zot-verify = {
+      namespace       = "zot"
+      service_account = "zot-verify"
+      policy          = <<-EOT
+        path "kv/data/homelab/k8s-zot/ci-readonly-password" {
+          capabilities = ["read"]
+        }
+      EOT
+    }
+
     # Mints its own rpc/admin/metrics secrets, and separately writes the
     # tofu-state bucket's access key into admin-github's path -- a real
     # cross-repo grant, not a mistake. Scoped to the 2 exact keys its own
@@ -429,8 +443,15 @@ locals {
       k8s-lib-ci-rbac    = ["zot-ci-password"]
       k8s-garage         = ["rpc-secret", "admin-token", "metrics-token"]
 
-      k8s-alertmanager         = ["discord-webhook-url", "downtime-webhook-url"]
-      k8s-zot                  = ["htpasswd"]
+      k8s-alertmanager = ["discord-webhook-url", "downtime-webhook-url"]
+      # ci-readonly-password is a deliberate second copy of a password
+      # that also exists (bcrypt-hashed, one-way) inside htpasswd's
+      # combined blob above -- plaintext, solely so zot-verify's
+      # PostSync check can make a real authenticated request and catch
+      # the exact class of outage a broken htpasswd merge previously
+      # caused (see k8s-zot#5's revert). Must be kept in sync manually
+      # with whatever ci-readonly's real password actually is.
+      k8s-zot                  = ["htpasswd", "ci-readonly-password"]
       k8s-argocd-image-updater = ["zot-ci-password"]
       k8s-cert-manager-config  = ["cloudflare-api-token"]
       k8s-cloudflare           = ["account-tag", "tunnel-id", "tunnel-secret", "cloudflare-api-token", "cf-account-id"]
