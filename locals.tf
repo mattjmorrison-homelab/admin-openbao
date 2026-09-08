@@ -334,6 +334,22 @@ locals {
       EOT
     }
 
+    # PostSync verify Job's identity -- read-only on its own dedicated
+    # Zot service-credential (a normal serviceConsumers entry, same
+    # mechanism as every other real consumer, not a shared account like
+    # ci-readonly). Catches a broken htpasswd merge (empty or missing
+    # entry) immediately via a real authenticated request, instead of
+    # silently.
+    zot-verify = {
+      namespace       = "zot"
+      service_account = "zot-verify"
+      policy          = <<-EOT
+        path "kv/data/homelab/service/k8s-zot/zot-verify/verify-password" {
+          capabilities = ["read"]
+        }
+      EOT
+    }
+
     # Mints its own rpc/admin/metrics secrets, and separately writes the
     # tofu-state bucket's access key into admin-github's path -- a real
     # cross-repo grant, not a mistake. Scoped to the 2 exact keys its own
@@ -393,6 +409,7 @@ locals {
     { provider = "k8s-zot", consumer = "graph-router", cred = "zot-publish" },
     { provider = "k8s-zot", consumer = "graph-hdmi-switch", cred = "zot-publish" },
     { provider = "k8s-zot", consumer = "ui-hdmi-switch", cred = "zot-publish" },
+    { provider = "k8s-zot", consumer = "zot-verify", cred = "verify-password" },
   ]
 
   service_secrets = [
