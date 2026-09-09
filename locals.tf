@@ -164,21 +164,20 @@ locals {
       EOT
     }
 
-    # admin-cloudflare's CI (check/apply) reads the same two real
-    # credentials k8s-cloudflare's own in-cluster cloudflare-bootstrap role
-    # already reads -- no new secret scaffolded, just a second, narrower
-    # role over the exact two keys Terraform's provider/data-source lookups
-    # need (account_id + api token), nothing else k8s-cloudflare owns
-    # (tunnel-id, tunnel-secret, account-tag stay exclusive to
-    # cloudflare-bootstrap).
+    # admin-cloudflare's CI (check/apply) reads its own dedicated
+    # credentials -- a separate, narrower-scoped Cloudflare API token
+    # (Zone:Read, DNS:Edit, Account:Cloudflare Tunnel:Read, restricted to
+    # morrisons.site) from the one k8s-cloudflare's in-cluster
+    # cloudflare-bootstrap role uses (which also needs Tunnel:Edit to
+    # create the tunnel itself). Two different consumers must never read
+    # the same credential, even when the values happen to be readable by
+    # the same Cloudflare account -- that's exactly the sharing this
+    # homelab's secrets standard exists to prevent.
     admin-cloudflare = {
       namespace       = "github-runner"
       service_account = "github-runner-workload"
       policy          = <<-EOT
-        path "kv/data/homelab/k8s-cloudflare/cloudflare-api-token" {
-          capabilities = ["read"]
-        }
-        path "kv/data/homelab/k8s-cloudflare/cf-account-id" {
+        path "kv/data/homelab/admin-cloudflare/*" {
           capabilities = ["read"]
         }
       EOT
@@ -476,6 +475,7 @@ locals {
       ui-hdmi-switch           = ["discord-webhook-url"]
       graph-hdmi-switch        = ["discord-webhook-url"]
       admin-discord            = ["discord-bot-token"]
+      admin-cloudflare         = ["cloudflare-api-token", "cf-account-id"]
       pi-health                = ["ssh-private-key"]
       pi                       = ["pi1/private-key", "pizero/private-key", "pi5-8/private-key", "pi5-16/private-key", "k3s-join-token"]
       homelab                  = ["zot-readonly-password"]
