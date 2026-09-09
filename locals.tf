@@ -164,6 +164,26 @@ locals {
       EOT
     }
 
+    # admin-cloudflare's CI (check/apply) reads the same two real
+    # credentials k8s-cloudflare's own in-cluster cloudflare-bootstrap role
+    # already reads -- no new secret scaffolded, just a second, narrower
+    # role over the exact two keys Terraform's provider/data-source lookups
+    # need (account_id + api token), nothing else k8s-cloudflare owns
+    # (tunnel-id, tunnel-secret, account-tag stay exclusive to
+    # cloudflare-bootstrap).
+    admin-cloudflare = {
+      namespace       = "github-runner"
+      service_account = "github-runner-workload"
+      policy          = <<-EOT
+        path "kv/data/homelab/k8s-cloudflare/cloudflare-api-token" {
+          capabilities = ["read"]
+        }
+        path "kv/data/homelab/k8s-cloudflare/cf-account-id" {
+          capabilities = ["read"]
+        }
+      EOT
+    }
+
     # pi-health has no ServiceAccount of its own -- it's a standalone
     # binary on pi1, not a cluster workload -- so this role exists only
     # for CI's apply job (running as github-runner-workload, same shared
