@@ -1,4 +1,4 @@
-run "zot_role_can_read_its_own_service_subtree" {
+run "zot_role_scoped_to_only_its_own_htpasswd_now_the_shared_delivery_mechanism_is_gone" {
   command = plan
 
   assert {
@@ -7,7 +7,7 @@ run "zot_role_can_read_its_own_service_subtree" {
   }
 
   assert {
-    condition     = strcontains(local.roles["zot"].policy, "kv/data/homelab/service/k8s-zot/*")
-    error_message = "zot role must be able to read its own service/k8s-zot/* subtree -- confirmed live (2026-09-24) that all 9 per-consumer service-credential ExternalSecrets authenticate via this same role, not just the zot pod's own htpasswd ExternalSecret"
+    condition     = !strcontains(local.roles["zot"].policy, "kv/data/homelab/service/k8s-zot/*")
+    error_message = "zot role must not grant service/k8s-zot/* anymore -- k8s-zot#14 removed the last consumer of this role that needed it (the now-fully-unused zot-service-cred-* delivery mechanism); every real consumer now reads its own dedicated path via its own role"
   }
 }

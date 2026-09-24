@@ -29,25 +29,21 @@ locals {
       EOT
     }
 
-    # REVERTED (2026-09-24): narrowing this to just k8s-zot/htpasswd
-    # broke real live service -- the zot pod's own htpasswd
-    # ExternalSecret is NOT the only consumer of this role/SecretStore.
-    # All 9 of k8s-zot's per-consumer service-credential ExternalSecrets
-    # (external-secret-service-consumers.yaml) also authenticate via
-    # this same role, to read their own service/k8s-zot/<name>/<cred>
-    # path -- confirmed live: narrowing this caused real UpdateFailed
-    # errors on all 9, Application went Degraded. Giving each of those
-    # 9 ExternalSecrets its own dedicated role (instead of sharing
-    # zot's) is the real fix, tracked as follow-up -- not done here,
-    # under live-incident pressure, without review.
+    # Narrowed for real, 2026-09-24: the first attempt at this (#40)
+    # broke live service because k8s-zot's 9 per-consumer
+    # zot-service-cred-<name> ExternalSecrets (external-secret-service-
+    # consumers.yaml) also authenticated via this same role/SecretStore
+    # to read service/k8s-zot/<name>/<cred>, reverted in #43. Since then,
+    # every real consumer migrated onto its own dedicated OpenBao role
+    # reading its own path directly (Phase 2, #47-#53), and k8s-zot#14
+    # removed that now-fully-unused delivery mechanism entirely --
+    # confirmed live, zero zot-service-cred-* Secrets remain, Application
+    # Healthy. Nothing left reads service/k8s-zot/* via this role.
     zot = {
       namespace       = "zot"
       service_account = "zot"
       policy          = <<-EOT
         path "kv/data/homelab/k8s-zot/htpasswd" {
-          capabilities = ["read"]
-        }
-        path "kv/data/homelab/service/k8s-zot/*" {
           capabilities = ["read"]
         }
       EOT
