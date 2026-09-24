@@ -53,11 +53,17 @@ locals {
       EOT
     }
 
+    # Grants both the old wildcard (still read by the not-yet-repointed
+    # ExternalSecret) and the new per-consumer Zot credential during the
+    # cutover window -- drop the old grant once confirmed repointed.
     argocd-image-updater = {
       namespace       = "argocd"
       service_account = "argocd-image-updater-controller"
       policy          = <<-EOT
         path "kv/data/homelab/k8s-argocd-image-updater/*" {
+          capabilities = ["read"]
+        }
+        path "kv/data/homelab/service/k8s-zot/k8s-argocd-image-updater/zot-pull" {
           capabilities = ["read"]
         }
       EOT
@@ -299,11 +305,18 @@ locals {
     # secret-fetcher ServiceAccount (argocd-repo-creds-oci-secret), matching
     # the argocd-webhook/argocd-webhook-secret pattern, not repo-server's own
     # ServiceAccount -- k8s-argocd's SecretStore requests this exact role.
+    # Grants both the old exact key (still read by the not-yet-
+    # repointed ExternalSecret) and the new per-consumer Zot credential
+    # during the cutover window -- drop the old grant once
+    # repo-creds-oci-external-secret.yaml is confirmed repointed.
     argocd-repo-creds-oci = {
       namespace       = "argocd"
       service_account = "argocd-repo-creds-oci-secret"
       policy          = <<-EOT
         path "kv/data/homelab/k8s-argocd/zot-ci-password" {
+          capabilities = ["read"]
+        }
+        path "kv/data/homelab/service/k8s-zot/k8s-argocd/zot-pull" {
           capabilities = ["read"]
         }
       EOT
