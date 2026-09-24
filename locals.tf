@@ -232,11 +232,17 @@ locals {
     # pi-health-deploy/pi-provision-deploy), deliberately not reusing the
     # github-actions-runner role itself since that role's policy is scoped
     # narrower to just tofu-state/github-token.
+    #
+    # Migrated (2026-09-24) from kv/data/homelab/k8s-lib-ci-rbac/* (a path
+    # that was never actually populated -- this workflow never successfully
+    # published against a live registry) to its real, already-provisioned
+    # per-consumer Zot credential -- Phase 2 of the secrets-standard-
+    # compliance work, off the shared ci admin user.
     k8s-lib-ci-rbac-publish = {
       namespace       = "github-runner"
       service_account = "github-runner-workload"
       policy          = <<-EOT
-        path "kv/data/homelab/k8s-lib-ci-rbac/*" {
+        path "kv/data/homelab/service/k8s-zot/k8s-lib-ci-rbac/zot-publish" {
           capabilities = ["read"]
         }
       EOT
