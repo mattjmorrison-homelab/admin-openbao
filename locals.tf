@@ -421,17 +421,7 @@ locals {
   # real password before this ever applied, this resource's first-ever
   # write (which only ever happens once, ever) would create a new blank
   # version on top of it, silently superseding the real one.
-  # k8s-garage/pull-helm-libs was scaffolded speculatively for an OCI
-  # chart dependency (k8s-lib-ci-rbac) that k8s-garage's own chart never
-  # actually declared -- confirmed unused anywhere (no Chart.yaml
-  # dependency, no manifest, no workflow references it). Being retired
-  # via secrets.tf's retiring_secrets split (this PR moves it to that
-  # split, a follow-up PR removes it from both lists below for real) --
-  # deliberately still listed here in this PR, not yet removed: removing
-  # it from service_credentials now would drop it from local.secrets
-  # entirely, breaking the moved block secrets.tf's split depends on.
   service_credentials = [
-    { provider = "k8s-zot", consumer = "k8s-garage", cred = "pull-helm-libs" },
     { provider = "k8s-zot", consumer = "k8s-graphql-router", cred = "zot-pull" },
     { provider = "k8s-zot", consumer = "k8s-hdmi-switch", cred = "zot-pull" },
     { provider = "k8s-zot", consumer = "k8s-argocd", cred = "zot-pull" },
