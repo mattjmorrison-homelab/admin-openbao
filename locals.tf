@@ -29,17 +29,14 @@ locals {
       EOT
     }
 
+    # zot's own pod only ever reads the one merged htpasswd blob --
+    # every individual consumer's raw password under service/k8s-zot/*
+    # is exclusively zot-bootstrap's to read (it does the merging).
     zot = {
       namespace       = "zot"
       service_account = "zot"
       policy          = <<-EOT
-        path "kv/data/homelab/k8s-zot" {
-          capabilities = ["read"]
-        }
-        path "kv/data/homelab/k8s-zot/*" {
-          capabilities = ["read"]
-        }
-        path "kv/data/homelab/service/k8s-zot/*" {
+        path "kv/data/homelab/k8s-zot/htpasswd" {
           capabilities = ["read"]
         }
       EOT
