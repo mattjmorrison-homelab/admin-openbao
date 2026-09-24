@@ -63,6 +63,11 @@ locals {
       EOT
     }
 
+    # Grants both the old bare/k8s-hdmi-switch paths (still read by the
+    # not-yet-repointed ExternalSecret) and the new per-consumer Zot
+    # credential (Phase 2 migration target) during the cutover window --
+    # drop the old grants once k8s-hdmi-switch's ExternalSecret is
+    # confirmed repointed and working.
     hdmi-switch = {
       namespace       = "hdmi-switch"
       service_account = "hdmi-switch"
@@ -74,6 +79,9 @@ locals {
           capabilities = ["read"]
         }
         path "kv/data/homelab/k8s-hdmi-switch/*" {
+          capabilities = ["read"]
+        }
+        path "kv/data/homelab/service/k8s-zot/k8s-hdmi-switch/zot-pull" {
           capabilities = ["read"]
         }
       EOT
@@ -311,6 +319,9 @@ locals {
       EOT
     }
 
+    # Same cutover-window shape as hdmi-switch above -- grants both the
+    # old paths (still read by the not-yet-repointed ExternalSecret) and
+    # the new per-consumer Zot credential.
     graphql-router = {
       namespace       = "graphql-router"
       service_account = "graphql-router"
@@ -322,6 +333,9 @@ locals {
           capabilities = ["read"]
         }
         path "kv/data/homelab/k8s-graphql-router/*" {
+          capabilities = ["read"]
+        }
+        path "kv/data/homelab/service/k8s-zot/k8s-graphql-router/zot-pull" {
           capabilities = ["read"]
         }
       EOT
