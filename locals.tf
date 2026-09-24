@@ -29,14 +29,25 @@ locals {
       EOT
     }
 
-    # zot's own pod only ever reads the one merged htpasswd blob --
-    # every individual consumer's raw password under service/k8s-zot/*
-    # is exclusively zot-bootstrap's to read (it does the merging).
+    # REVERTED (2026-09-24): narrowing this to just k8s-zot/htpasswd
+    # broke real live service -- the zot pod's own htpasswd
+    # ExternalSecret is NOT the only consumer of this role/SecretStore.
+    # All 9 of k8s-zot's per-consumer service-credential ExternalSecrets
+    # (external-secret-service-consumers.yaml) also authenticate via
+    # this same role, to read their own service/k8s-zot/<name>/<cred>
+    # path -- confirmed live: narrowing this caused real UpdateFailed
+    # errors on all 9, Application went Degraded. Giving each of those
+    # 9 ExternalSecrets its own dedicated role (instead of sharing
+    # zot's) is the real fix, tracked as follow-up -- not done here,
+    # under live-incident pressure, without review.
     zot = {
       namespace       = "zot"
       service_account = "zot"
       policy          = <<-EOT
         path "kv/data/homelab/k8s-zot/htpasswd" {
+          capabilities = ["read"]
+        }
+        path "kv/data/homelab/service/k8s-zot/*" {
           capabilities = ["read"]
         }
       EOT

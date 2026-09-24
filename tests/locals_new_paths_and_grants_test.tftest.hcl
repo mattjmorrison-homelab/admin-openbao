@@ -47,6 +47,10 @@ run "roles_grant_the_new_paths_too" {
     error_message = "alertmanager role must grant k8s-alertmanager/*"
   }
   assert {
+    condition     = strcontains(local.roles["zot"].policy, "kv/data/homelab/service/k8s-zot/*")
+    error_message = "zot role must grant service/k8s-zot/* -- its 9 per-consumer service-credential ExternalSecrets share this role"
+  }
+  assert {
     condition     = strcontains(local.roles["argocd-image-updater"].policy, "kv/data/homelab/k8s-argocd-image-updater/*")
     error_message = "argocd-image-updater role must grant k8s-argocd-image-updater/*"
   }
