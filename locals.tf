@@ -115,6 +115,25 @@ locals {
       EOT
     }
 
+    # Same per-purpose-role convention as ui-hdmi-switch-discord/
+    # graph-hdmi-switch-discord -- shared github-runner-workload
+    # identity, but its own dedicated role/policy, scoped to only
+    # admin-discord's own tofu-state credential. Phase 1b (#39):
+    # replaces admin-discord's use of the shared github-actions-runner
+    # role/bucket above, once its state migration is confirmed live.
+    admin-discord-tofu-state = {
+      namespace       = "github-runner"
+      service_account = "github-runner-workload"
+      policy          = <<-EOT
+        path "kv/data/homelab/service/k8s-garage/admin-discord/tofu-state-access-key-id" {
+          capabilities = ["read"]
+        }
+        path "kv/data/homelab/service/k8s-garage/admin-discord/tofu-state-secret-access-key" {
+          capabilities = ["read"]
+        }
+      EOT
+    }
+
     # One narrow role per repo needing its own Discord webhook, bound to
     # the same shared github-runner-workload identity as every other CI
     # role -- deliberately not the "github-runner"/"github-actions-runner"
