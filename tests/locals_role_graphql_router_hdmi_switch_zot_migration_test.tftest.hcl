@@ -1,4 +1,4 @@
-run "graphql_router_and_hdmi_switch_roles_grant_the_new_per_consumer_zot_credential" {
+run "graphql_router_and_hdmi_switch_roles_scoped_to_only_the_new_per_consumer_zot_credential" {
   command = plan
 
   assert {
@@ -12,12 +12,12 @@ run "graphql_router_and_hdmi_switch_roles_grant_the_new_per_consumer_zot_credent
   }
 
   assert {
-    condition     = strcontains(local.roles["graphql-router"].policy, "kv/data/homelab/graphql-router/*")
-    error_message = "graphql-router must still keep its old grant during the cutover window -- not repointed live yet"
+    condition     = !strcontains(local.roles["graphql-router"].policy, "kv/data/homelab/graphql-router") && !strcontains(local.roles["graphql-router"].policy, "kv/data/homelab/k8s-graphql-router/*")
+    error_message = "graphql-router's old bare/k8s-graphql-router/* grants must be gone -- migration confirmed live, nothing else references them"
   }
 
   assert {
-    condition     = strcontains(local.roles["hdmi-switch"].policy, "kv/data/homelab/k8s-hdmi-switch/*")
-    error_message = "hdmi-switch must still keep its old grant during the cutover window -- not repointed live yet"
+    condition     = !strcontains(local.roles["hdmi-switch"].policy, "kv/data/homelab/hdmi-switch") && !strcontains(local.roles["hdmi-switch"].policy, "kv/data/homelab/k8s-hdmi-switch/*")
+    error_message = "hdmi-switch's old bare/k8s-hdmi-switch/* grants must be gone -- migration confirmed live, nothing else references them"
   }
 }
