@@ -250,6 +250,45 @@ locals {
       EOT
     }
 
+    # Bound to each Kaniko job's own dedicated ServiceAccount
+    # (k8s-ci-rbac's jobServiceAccounts), not the shared
+    # github-runner-workload identity above -- unlike k8s-lib-ci-rbac-
+    # publish (which fetches from a GitHub Actions workflow step), these
+    # 3 credentials are delivered in-cluster via each job's own
+    # SecretStore/ExternalSecret (k8s-ci-rbac's job-zot-pull-secret.yaml),
+    # so the auth identity is the job's own ServiceAccount. Replaces the
+    # old shared zot-pull-secret/ci admin user these Kaniko jobs used to
+    # pull from -- part of Phase 2 of the secrets-standard-compliance work.
+    graph-router = {
+      namespace       = "github-runner"
+      service_account = "graph-router-job"
+      policy          = <<-EOT
+        path "kv/data/homelab/service/k8s-zot/graph-router/zot-publish" {
+          capabilities = ["read"]
+        }
+      EOT
+    }
+
+    graph-hdmi-switch = {
+      namespace       = "github-runner"
+      service_account = "graph-hdmi-switch-job"
+      policy          = <<-EOT
+        path "kv/data/homelab/service/k8s-zot/graph-hdmi-switch/zot-publish" {
+          capabilities = ["read"]
+        }
+      EOT
+    }
+
+    ui-hdmi-switch = {
+      namespace       = "github-runner"
+      service_account = "ui-hdmi-switch-job"
+      policy          = <<-EOT
+        path "kv/data/homelab/service/k8s-zot/ui-hdmi-switch/zot-publish" {
+          capabilities = ["read"]
+        }
+      EOT
+    }
+
     cert-manager = {
       namespace       = "cert-manager"
       service_account = "homelab-cert-manager"
