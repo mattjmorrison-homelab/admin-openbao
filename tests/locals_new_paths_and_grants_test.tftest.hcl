@@ -7,10 +7,6 @@ run "new_secrets_scaffolded" {
   command = plan
 
   assert {
-    condition     = contains([for s in local.secrets : "${s.app}/${s.key}"], "k8s-argocd/zot-ci-password")
-    error_message = "k8s-argocd must scaffold zot-ci-password"
-  }
-  assert {
     condition     = contains([for s in local.secrets : "${s.app}/${s.key}"], "k8s-alertmanager/discord-webhook-url")
     error_message = "k8s-alertmanager must scaffold discord-webhook-url"
   }
@@ -21,10 +17,6 @@ run "new_secrets_scaffolded" {
   assert {
     condition     = contains([for s in local.secrets : "${s.app}/${s.key}"], "k8s-zot/htpasswd")
     error_message = "k8s-zot must scaffold htpasswd"
-  }
-  assert {
-    condition     = contains([for s in local.secrets : "${s.app}/${s.key}"], "k8s-argocd-image-updater/zot-ci-password")
-    error_message = "k8s-argocd-image-updater must scaffold zot-ci-password"
   }
   assert {
     condition     = contains([for s in local.secrets : "${s.app}/${s.key}"], "k8s-cert-manager-config/cloudflare-api-token")
@@ -48,7 +40,7 @@ run "roles_grant_the_new_paths_too" {
   }
   assert {
     condition     = strcontains(local.roles["zot"].policy, "kv/data/homelab/service/k8s-zot/*")
-    error_message = "zot role must grant service/k8s-zot/* -- its 9 per-consumer service-credential ExternalSecrets share this role"
+    error_message = "zot role must grant service/k8s-zot/* -- its 8 per-consumer service-credential ExternalSecrets share this role"
   }
   assert {
     condition     = strcontains(local.roles["cert-manager"].policy, "kv/data/homelab/k8s-cert-manager-config/*")

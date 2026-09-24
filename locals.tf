@@ -521,38 +521,22 @@ locals {
   # independently of the Vault path.
   secrets = concat(local.service_secrets, flatten([
     for app, keys in {
-      # These 6 zot-ci-password entries are all orphaned now -- every
-      # real consumer has migrated to its own dedicated
-      # service/k8s-zot/<name>/<cred> credential, confirmed live (Phase 2
-      # of the secrets-standard-compliance work). Being retired via
-      # secrets.tf's retiring_secrets split (this PR moves them there,
-      # 0 destroyed; a follow-up PR removes them from both that list and
-      # this map for real, which is what actually destroys them --
-      # same two-step dance as admin-openbao#44/#45's
-      # k8s-garage/pull-helm-libs retirement). Deliberately still listed
-      # here in this PR, not yet removed: removing an entry now would
-      # drop it from local.secrets entirely, breaking the moved block
-      # secrets.tf's split depends on.
-      k8s-hdmi-switch    = ["zot-ci-password"]
-      k8s-argocd         = ["discord-webhook-url", "github-webhook-secret", "zot-ci-password"]
-      k8s-graphql-router = ["zot-ci-password"]
-      k8s-lib-ci-rbac    = ["zot-ci-password"]
-      k8s-garage         = ["rpc-secret", "admin-token", "metrics-token"]
+      k8s-argocd = ["discord-webhook-url", "github-webhook-secret"]
+      k8s-garage = ["rpc-secret", "admin-token", "metrics-token"]
 
-      k8s-alertmanager         = ["discord-webhook-url", "downtime-webhook-url"]
-      k8s-zot                  = ["htpasswd"]
-      k8s-argocd-image-updater = ["zot-ci-password"]
-      k8s-cert-manager-config  = ["cloudflare-api-token"]
-      k8s-cloudflare           = ["account-tag", "tunnel-id", "tunnel-secret", "cloudflare-api-token", "cf-account-id"]
-      admin-github             = ["github-token", "tofu-state-access-key-id", "tofu-state-secret-access-key"]
-      k8s-github-runner        = ["github-app-id", "github-app-installation-id", "github-app-private-key", "zot-ci-password"]
-      ui-hdmi-switch           = ["discord-webhook-url"]
-      graph-hdmi-switch        = ["discord-webhook-url"]
-      admin-discord            = ["discord-bot-token"]
-      admin-cloudflare         = ["cloudflare-api-token", "cf-account-id"]
-      pi-health                = ["ssh-private-key"]
-      pi                       = ["pi1/private-key", "pizero/private-key", "pi5-8/private-key", "pi5-16/private-key", "k3s-join-token"]
-      homelab                  = ["zot-readonly-password"]
+      k8s-alertmanager        = ["discord-webhook-url", "downtime-webhook-url"]
+      k8s-zot                 = ["htpasswd"]
+      k8s-cert-manager-config = ["cloudflare-api-token"]
+      k8s-cloudflare          = ["account-tag", "tunnel-id", "tunnel-secret", "cloudflare-api-token", "cf-account-id"]
+      admin-github            = ["github-token", "tofu-state-access-key-id", "tofu-state-secret-access-key"]
+      k8s-github-runner       = ["github-app-id", "github-app-installation-id", "github-app-private-key"]
+      ui-hdmi-switch          = ["discord-webhook-url"]
+      graph-hdmi-switch       = ["discord-webhook-url"]
+      admin-discord           = ["discord-bot-token"]
+      admin-cloudflare        = ["cloudflare-api-token", "cf-account-id"]
+      pi-health               = ["ssh-private-key"]
+      pi                      = ["pi1/private-key", "pizero/private-key", "pi5-8/private-key", "pi5-16/private-key", "k3s-join-token"]
+      homelab                 = ["zot-readonly-password"]
       } : [
       for key in keys : {
         app = app
