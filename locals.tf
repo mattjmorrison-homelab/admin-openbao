@@ -63,24 +63,14 @@ locals {
       EOT
     }
 
-    # Grants both the old bare/k8s-hdmi-switch paths (still read by the
-    # not-yet-repointed ExternalSecret) and the new per-consumer Zot
-    # credential (Phase 2 migration target) during the cutover window --
-    # drop the old grants once k8s-hdmi-switch's ExternalSecret is
-    # confirmed repointed and working.
+    # Narrowed 2026-09-24: k8s-hdmi-switch's ExternalSecret is confirmed
+    # repointed and live (k8s-hdmi-switch#3) -- old bare/k8s-hdmi-switch/*
+    # grants dropped, confirmed nothing else in the org references
+    # either old path anymore.
     hdmi-switch = {
       namespace       = "hdmi-switch"
       service_account = "hdmi-switch"
       policy          = <<-EOT
-        path "kv/data/homelab/hdmi-switch" {
-          capabilities = ["read"]
-        }
-        path "kv/data/homelab/hdmi-switch/*" {
-          capabilities = ["read"]
-        }
-        path "kv/data/homelab/k8s-hdmi-switch/*" {
-          capabilities = ["read"]
-        }
         path "kv/data/homelab/service/k8s-zot/k8s-hdmi-switch/zot-pull" {
           capabilities = ["read"]
         }
@@ -319,22 +309,14 @@ locals {
       EOT
     }
 
-    # Same cutover-window shape as hdmi-switch above -- grants both the
-    # old paths (still read by the not-yet-repointed ExternalSecret) and
-    # the new per-consumer Zot credential.
+    # Narrowed 2026-09-24: k8s-graphql-router's ExternalSecret is
+    # confirmed repointed and live (k8s-graphql-router#3) -- old bare/
+    # k8s-graphql-router/* grants dropped, confirmed nothing else in
+    # the org references either old path anymore.
     graphql-router = {
       namespace       = "graphql-router"
       service_account = "graphql-router"
       policy          = <<-EOT
-        path "kv/data/homelab/graphql-router" {
-          capabilities = ["read"]
-        }
-        path "kv/data/homelab/graphql-router/*" {
-          capabilities = ["read"]
-        }
-        path "kv/data/homelab/k8s-graphql-router/*" {
-          capabilities = ["read"]
-        }
         path "kv/data/homelab/service/k8s-zot/k8s-graphql-router/zot-pull" {
           capabilities = ["read"]
         }
