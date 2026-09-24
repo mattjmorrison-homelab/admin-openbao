@@ -521,11 +521,18 @@ locals {
   # independently of the Vault path.
   secrets = concat(local.service_secrets, flatten([
     for app, keys in {
-      # k8s-graphql-router's ExternalSecret still reads the old
-      # homelab/graphql-router bare-name path -- not yet migrated to its
-      # own per-key path here, unlike the apps this map used to also
-      # scaffold a stale homelab-* prefix for (all retired for real, see
-      # admin-openbao#27/#28).
+      # These 6 zot-ci-password entries are all orphaned now -- every
+      # real consumer has migrated to its own dedicated
+      # service/k8s-zot/<name>/<cred> credential, confirmed live (Phase 2
+      # of the secrets-standard-compliance work). Being retired via
+      # secrets.tf's retiring_secrets split (this PR moves them there,
+      # 0 destroyed; a follow-up PR removes them from both that list and
+      # this map for real, which is what actually destroys them --
+      # same two-step dance as admin-openbao#44/#45's
+      # k8s-garage/pull-helm-libs retirement). Deliberately still listed
+      # here in this PR, not yet removed: removing an entry now would
+      # drop it from local.secrets entirely, breaking the moved block
+      # secrets.tf's split depends on.
       k8s-hdmi-switch    = ["zot-ci-password"]
       k8s-argocd         = ["discord-webhook-url", "github-webhook-secret", "zot-ci-password"]
       k8s-graphql-router = ["zot-ci-password"]
