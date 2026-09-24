@@ -433,6 +433,11 @@ locals {
     { provider = "k8s-garage", consumer = "admin-github", cred = "tofu-state-secret-access-key" },
     { provider = "k8s-garage", consumer = "admin-openbao", cred = "tofu-state-access-key-id" },
     { provider = "k8s-garage", consumer = "admin-openbao", cred = "tofu-state-secret-access-key" },
+    # admin-cloudflare didn't exist when the original 3-repo list was
+    # written -- confirmed via grepping every repo's provider.tf for
+    # `backend "s3"` that it's on the same shared bucket too.
+    { provider = "k8s-garage", consumer = "admin-cloudflare", cred = "tofu-state-access-key-id" },
+    { provider = "k8s-garage", consumer = "admin-cloudflare", cred = "tofu-state-secret-access-key" },
   ]
 
   service_secrets = [
