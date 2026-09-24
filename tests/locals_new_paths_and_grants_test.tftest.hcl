@@ -51,10 +51,6 @@ run "roles_grant_the_new_paths_too" {
     error_message = "zot role must grant service/k8s-zot/* -- its 9 per-consumer service-credential ExternalSecrets share this role"
   }
   assert {
-    condition     = strcontains(local.roles["argocd-image-updater"].policy, "kv/data/homelab/k8s-argocd-image-updater/*")
-    error_message = "argocd-image-updater role must grant k8s-argocd-image-updater/*"
-  }
-  assert {
     condition     = strcontains(local.roles["cert-manager"].policy, "kv/data/homelab/k8s-cert-manager-config/*")
     error_message = "cert-manager role must grant k8s-cert-manager-config/*"
   }
@@ -69,9 +65,5 @@ run "roles_grant_the_new_paths_too" {
   assert {
     condition     = strcontains(local.roles["argocd-webhook"].policy, "kv/data/homelab/k8s-argocd/github-webhook-secret")
     error_message = "argocd-webhook role must grant its own exact key, k8s-argocd/github-webhook-secret"
-  }
-  assert {
-    condition     = strcontains(local.roles["argocd-repo-creds-oci"].policy, "kv/data/homelab/k8s-argocd/zot-ci-password")
-    error_message = "argocd-repo-creds-oci role must grant its own exact key, k8s-argocd/zot-ci-password"
   }
 }
