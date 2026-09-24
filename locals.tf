@@ -371,6 +371,12 @@ locals {
     # cross-repo grant, not a mistake. Scoped to the 2 exact keys its own
     # bootstrap script touches (not a wildcard) -- read is needed because
     # the script's idempotency check reads before writing.
+    # The admin-github/tofu-state-* grant is the old shared bucket/key
+    # this bootstrap job used to mint once for every repo -- kept until
+    # every repo has migrated off it (Phase 1b decommissioning), even
+    # though the new mechanism below writes real per-repo credentials
+    # instead. service/k8s-garage/* is this job's own provider prefix,
+    # same pattern as zot-bootstrap's service/k8s-zot/* grant.
     garage = {
       namespace       = "garage"
       service_account = "garage"
@@ -382,6 +388,9 @@ locals {
           capabilities = ["read", "create", "update"]
         }
         path "kv/data/homelab/admin-github/tofu-state-secret-access-key" {
+          capabilities = ["read", "create", "update"]
+        }
+        path "kv/data/homelab/service/k8s-garage/*" {
           capabilities = ["read", "create", "update"]
         }
       EOT
@@ -412,6 +421,18 @@ locals {
     { provider = "k8s-zot", consumer = "graph-hdmi-switch", cred = "zot-publish" },
     { provider = "k8s-zot", consumer = "ui-hdmi-switch", cred = "zot-publish" },
     { provider = "k8s-zot", consumer = "zot-verify", cred = "verify-password" },
+
+    # Per-repo Garage tofu-state bucket credentials -- replaces the old
+    # single shared bucket/key every Terraform repo used to read from
+    # admin-github's own path. k8s-garage's bootstrap job mints one
+    # bucket + one key per repo and writes both here, same provider/
+    # consumer pattern as k8s-zot's credentials above.
+    { provider = "k8s-garage", consumer = "admin-discord", cred = "tofu-state-access-key-id" },
+    { provider = "k8s-garage", consumer = "admin-discord", cred = "tofu-state-secret-access-key" },
+    { provider = "k8s-garage", consumer = "admin-github", cred = "tofu-state-access-key-id" },
+    { provider = "k8s-garage", consumer = "admin-github", cred = "tofu-state-secret-access-key" },
+    { provider = "k8s-garage", consumer = "admin-openbao", cred = "tofu-state-access-key-id" },
+    { provider = "k8s-garage", consumer = "admin-openbao", cred = "tofu-state-secret-access-key" },
   ]
 
   service_secrets = [
