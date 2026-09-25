@@ -134,7 +134,14 @@ locals {
       EOT
     }
 
-    # Same per-purpose-role convention as admin-discord-tofu-state above.
+    # Same per-purpose-role convention as admin-discord-tofu-state above,
+    # plus admin-github's own github-token -- unlike every other
+    # migrating repo, admin-github's own Terraform provider needs a
+    # GITHUB_TOKEN too (fetch-credentials' needs-github-token: true),
+    # which the old shared github-actions-runner role used to also
+    # grant. Confirmed the hard way: the first version of this role
+    # only had the two tofu-state keys, and admin-github's migration
+    # workflow failed fetching github-token with that grant missing.
     admin-github-tofu-state = {
       namespace       = "github-runner"
       service_account = "github-runner-workload"
@@ -143,6 +150,9 @@ locals {
           capabilities = ["read"]
         }
         path "kv/data/homelab/service/k8s-garage/admin-github/tofu-state-secret-access-key" {
+          capabilities = ["read"]
+        }
+        path "kv/data/homelab/admin-github/github-token" {
           capabilities = ["read"]
         }
       EOT
