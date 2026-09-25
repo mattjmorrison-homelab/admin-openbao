@@ -8,11 +8,13 @@ terraform {
     }
   }
 
-  # State lives in k8s-garage's tofu-state bucket, same pattern as
-  # admin-github. Credentials come from AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY
-  # env vars, not from this file.
+  # State lives in this repo's own dedicated Garage bucket (Phase 1b,
+  # #39) -- migrated off the old shared tofu-state bucket, confirmed
+  # live via a zero-drift plan against the copied state. Credentials
+  # come from AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY env vars, not
+  # from this file.
   backend "s3" {
-    bucket = "tofu-state"
+    bucket = "admin-openbao-tofu-state"
     key    = "admin-openbao/terraform.tfstate"
     region = "garage"
 
