@@ -176,6 +176,24 @@ locals {
       EOT
     }
 
+    # Same per-purpose-role convention as admin-discord-tofu-state/
+    # admin-github-tofu-state/admin-openbao-tofu-state above. Separate
+    # from the existing "admin-cloudflare" role (which grants
+    # cloudflare-api-token/cf-account-id) -- this one is purely for the
+    # tofu-state credential, matching every other migrated repo.
+    admin-cloudflare-tofu-state = {
+      namespace       = "github-runner"
+      service_account = "github-runner-workload"
+      policy          = <<-EOT
+        path "kv/data/homelab/service/k8s-garage/admin-cloudflare/tofu-state-access-key-id" {
+          capabilities = ["read"]
+        }
+        path "kv/data/homelab/service/k8s-garage/admin-cloudflare/tofu-state-secret-access-key" {
+          capabilities = ["read"]
+        }
+      EOT
+    }
+
     # One narrow role per repo needing its own Discord webhook, bound to
     # the same shared github-runner-workload identity as every other CI
     # role -- deliberately not the "github-runner"/"github-actions-runner"
