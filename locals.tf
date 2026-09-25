@@ -619,19 +619,19 @@ locals {
       # host+client-named ones below (#40). Additive during cutover:
       # kept until both repos' publish.yml are confirmed repointed and
       # writing real values to the new paths.
-      ui-hdmi-switch          = ["discord-webhook-url"]
-      graph-hdmi-switch       = ["discord-webhook-url"]
+      ui-hdmi-switch    = ["discord-webhook-url"]
+      graph-hdmi-switch = ["discord-webhook-url"]
       # Host+client-named, matching the provider/consumer convention
       # used for Zot's service credentials -- "github-actions" is the
       # actual shared Discord webhook (see admin-discord's own
       # locals.tf) these two repos each keep their own copy of.
       "github-actions/ui-hdmi-switch"    = ["webhook-url"]
       "github-actions/graph-hdmi-switch" = ["webhook-url"]
-      admin-discord           = ["discord-bot-token"]
-      admin-cloudflare        = ["cloudflare-api-token", "cf-account-id"]
-      pi-health               = ["ssh-private-key"]
-      pi                      = ["pi1/private-key", "pizero/private-key", "pi5-8/private-key", "pi5-16/private-key", "k3s-join-token"]
-      homelab                 = ["zot-readonly-password"]
+      admin-discord                      = ["discord-bot-token"]
+      admin-cloudflare                   = ["cloudflare-api-token", "cf-account-id"]
+      pi-health                          = ["ssh-private-key"]
+      pi                                 = ["pi1/private-key", "pizero/private-key", "pi5-8/private-key", "pi5-16/private-key", "k3s-join-token"]
+      homelab                            = ["zot-readonly-password"]
       } : [
       for key in keys : {
         app = app
