@@ -206,6 +206,10 @@ locals {
     # this role's own repo writes that one value itself, pulled from
     # admin-discord's Terraform state via actions-tofu/read-output, so
     # admin-discord never needs write access to another repo's secrets.
+    # Grants both the old client-only-named path (still read/written by
+    # the not-yet-repointed publish.yml) and the new host+client-named
+    # one during the cutover window (#40) -- drop the old grant once
+    # publish.yml is confirmed repointed and writing real values there.
     ui-hdmi-switch-discord = {
       namespace       = "github-runner"
       service_account = "github-runner-workload"
@@ -216,11 +220,14 @@ locals {
         path "kv/data/homelab/ui-hdmi-switch/discord-webhook-url" {
           capabilities = ["create", "update"]
         }
+        path "kv/data/homelab/github-actions/ui-hdmi-switch/webhook-url" {
+          capabilities = ["read", "create", "update"]
+        }
       EOT
     }
 
     # Same per-purpose-role convention as ui-hdmi-switch-discord above,
-    # including the same create/update grant on discord-webhook-url.
+    # including the same additive old+new grant during cutover.
     graph-hdmi-switch-discord = {
       namespace       = "github-runner"
       service_account = "github-runner-workload"
@@ -230,6 +237,9 @@ locals {
         }
         path "kv/data/homelab/graph-hdmi-switch/discord-webhook-url" {
           capabilities = ["create", "update"]
+        }
+        path "kv/data/homelab/github-actions/graph-hdmi-switch/webhook-url" {
+          capabilities = ["read", "create", "update"]
         }
       EOT
     }
@@ -605,13 +615,23 @@ locals {
       k8s-cloudflare          = ["account-tag", "tunnel-id", "tunnel-secret", "cloudflare-api-token", "cf-account-id"]
       admin-github            = ["github-token", "tofu-state-access-key-id", "tofu-state-secret-access-key"]
       k8s-github-runner       = ["github-app-id", "github-app-installation-id", "github-app-private-key"]
-      ui-hdmi-switch          = ["discord-webhook-url"]
-      graph-hdmi-switch       = ["discord-webhook-url"]
-      admin-discord           = ["discord-bot-token"]
-      admin-cloudflare        = ["cloudflare-api-token", "cf-account-id"]
-      pi-health               = ["ssh-private-key"]
-      pi                      = ["pi1/private-key", "pizero/private-key", "pi5-8/private-key", "pi5-16/private-key", "k3s-join-token"]
-      homelab                 = ["zot-readonly-password"]
+      # Old client-only-named paths -- being migrated to the
+      # host+client-named ones below (#40). Additive during cutover:
+      # kept until both repos' publish.yml are confirmed repointed and
+      # writing real values to the new paths.
+      ui-hdmi-switch    = ["discord-webhook-url"]
+      graph-hdmi-switch = ["discord-webhook-url"]
+      # Host+client-named, matching the provider/consumer convention
+      # used for Zot's service credentials -- "github-actions" is the
+      # actual shared Discord webhook (see admin-discord's own
+      # locals.tf) these two repos each keep their own copy of.
+      "github-actions/ui-hdmi-switch"    = ["webhook-url"]
+      "github-actions/graph-hdmi-switch" = ["webhook-url"]
+      admin-discord                      = ["discord-bot-token"]
+      admin-cloudflare                   = ["cloudflare-api-token", "cf-account-id"]
+      pi-health                          = ["ssh-private-key"]
+      pi                                 = ["pi1/private-key", "pizero/private-key", "pi5-8/private-key", "pi5-16/private-key", "k3s-join-token"]
+      homelab                            = ["zot-readonly-password"]
       } : [
       for key in keys : {
         app = app
