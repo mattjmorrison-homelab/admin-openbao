@@ -134,6 +134,20 @@ locals {
       EOT
     }
 
+    # Same per-purpose-role convention as admin-discord-tofu-state above.
+    admin-github-tofu-state = {
+      namespace       = "github-runner"
+      service_account = "github-runner-workload"
+      policy          = <<-EOT
+        path "kv/data/homelab/service/k8s-garage/admin-github/tofu-state-access-key-id" {
+          capabilities = ["read"]
+        }
+        path "kv/data/homelab/service/k8s-garage/admin-github/tofu-state-secret-access-key" {
+          capabilities = ["read"]
+        }
+      EOT
+    }
+
     # One narrow role per repo needing its own Discord webhook, bound to
     # the same shared github-runner-workload identity as every other CI
     # role -- deliberately not the "github-runner"/"github-actions-runner"
