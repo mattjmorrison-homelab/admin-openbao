@@ -1,0 +1,53 @@
+name: One-time tofu-state migration (Phase 1b)
+
+# Manually triggered, once, to copy this repo's real Terraform state
+# from the old shared tofu-state bucket into its own new per-repo
+# bucket -- see #39 (last of the 4 repos). Safe to re-run: -migrate-state
+# only copies, it never touches or deletes the old bucket's state.
+# Confirms zero drift against the newly-migrated state before
+# finishing, so a green run here is proof the copy is intact, not
+# just that it ran.
+#
+# Requires k8s-garage's tofuStateMigrationGrants to currently grant
+# this repo's new key temporary read on the old bucket (#39's step 1)
+# -- without that, the migrate step can't read the existing state to
+# copy it.
+#
+# This workflow deliberately does NOT touch provider.tf -- it proves
+# the migration works via a -backend-config override for this run
+# only. A separate PR flips provider.tf's bucket for real and switches
+# tofu.yml's fetch-credentials call to this repo's own dedicated role,
+# once this run is green.
+on:
+  workflow_dispatch: {}
+
+env:
+  VAULT_ADDR: http://k8s-openbao.openbao.svc:8200
+  VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
+
+jobs:
+  migrate:
+    runs-on: k8s-amd64
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: opentofu/setup-opentofu@9d84900f3238fab8cd84ce47d658d25dd008be2f # v1.0.8
+        with:
+          tofu_version: "1.12.0"
+          tofu_wrapper: false
+      - uses: mattjmorrison-homelab/actions-tofu/fetch-credentials@ee8759dc24664be5d19aef68d09032e7eb08169e # main
+        with:
+          role: admin-openbao-tofu-state
+          kv-prefix: service/k8s-garage/admin-openbao
+      # A plain init against the OLD backend first, exactly as
+      # provider.tf still declares it -- required so the next init has
+      # a local backend to detect a change against. On a fresh CI
+      # checkout there's no .terraform/ history at all, so without
+      # this step -migrate-state has nothing to compare against and
+      # silently just inits fresh against the new (empty) bucket
+      # instead of actually copying anything (confirmed the hard way
+      # during admin-discord's migration). Reads the old bucket using
+      # this same new credential's temporary grant (k8s-garage#14).
+      - run: tofu init
+      - run: tofu init -migrate-state -force-copy -backend-config="bucket=admin-openbao-tofu-state"
+      - name: Confirm zero drift against the migrated state
+        run: tofu plan -detailed-exitcode
