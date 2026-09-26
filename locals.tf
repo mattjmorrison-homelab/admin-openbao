@@ -400,6 +400,36 @@ locals {
       EOT
     }
 
+    # Bound to app-backstage's own Kaniko job ServiceAccount
+    # (k8s-ci-rbac's jobServiceAccounts entry app-backstage-job), same
+    # per-repo dedicated Zot-publish-credential pattern as graph-router/
+    # graph-hdmi-switch/ui-hdmi-switch above. Part of standing up
+    # Backstage (todo #41).
+    app-backstage = {
+      namespace       = "github-runner"
+      service_account = "app-backstage-job"
+      policy          = <<-EOT
+        path "kv/data/homelab/service/k8s-zot/app-backstage/zot-publish" {
+          capabilities = ["read"]
+        }
+      EOT
+    }
+
+    # Backstage's own deployed runtime -- reads its GitHub App credentials
+    # (already scaffolded) plus the Postgres password and backend
+    # service-to-service auth key added below. ServiceAccount name matches
+    # namespace, same convention as alertmanager/every other
+    # single-workload app. Part of standing up Backstage (todo #41).
+    backstage = {
+      namespace       = "backstage"
+      service_account = "backstage"
+      policy          = <<-EOT
+        path "kv/data/homelab/k8s-backstage/*" {
+          capabilities = ["read"]
+        }
+      EOT
+    }
+
     cert-manager = {
       namespace       = "cert-manager"
       service_account = "homelab-cert-manager"
@@ -583,6 +613,7 @@ locals {
     { provider = "k8s-zot", consumer = "graph-router", cred = "zot-publish" },
     { provider = "k8s-zot", consumer = "graph-hdmi-switch", cred = "zot-publish" },
     { provider = "k8s-zot", consumer = "ui-hdmi-switch", cred = "zot-publish" },
+    { provider = "k8s-zot", consumer = "app-backstage", cred = "zot-publish" },
     { provider = "k8s-zot", consumer = "zot-verify", cred = "verify-password" },
 
     # Per-repo Garage tofu-state bucket credentials -- replaces the old
@@ -645,7 +676,7 @@ locals {
       k8s-cloudflare          = ["account-tag", "tunnel-id", "tunnel-secret", "cloudflare-api-token", "cf-account-id"]
       admin-github            = ["github-token", "tofu-state-access-key-id", "tofu-state-secret-access-key"]
       k8s-github-runner       = ["github-app-id", "github-app-installation-id", "github-app-private-key"]
-      k8s-backstage           = ["github-app-id", "github-app-client-id", "github-app-client-secret", "github-app-private-key"]
+      k8s-backstage           = ["github-app-id", "github-app-client-id", "github-app-client-secret", "github-app-private-key", "postgres-password", "backend-auth-key"]
       admin-discord           = ["discord-bot-token"]
       admin-cloudflare        = ["cloudflare-api-token", "cf-account-id"]
       pi-health               = ["ssh-private-key"]
