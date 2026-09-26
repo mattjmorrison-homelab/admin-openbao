@@ -148,9 +148,14 @@ locals {
     # its own migration credential), but no different in kind -- this
     # role governs admin-openbao's CI identity, not admin-openbao's own
     # OpenBao management capabilities.
+    # kubernetes_auth = false: fully migrated to GitHub Actions OIDC
+    # (todo #17, admin-openbao#80/#81/#82/#83) -- policy still needed,
+    # binding is not (reused by name by admin_openbao_tofu_state_oidc
+    # in auth-jwt.tf).
     admin-openbao-tofu-state = {
       namespace       = "github-runner"
       service_account = "github-runner-workload"
+      kubernetes_auth = false
       policy          = <<-EOT
         path "kv/data/homelab/service/k8s-garage/admin-openbao/tofu-state-access-key-id" {
           capabilities = ["read"]
