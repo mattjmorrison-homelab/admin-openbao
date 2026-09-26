@@ -116,3 +116,23 @@ resource "vault_jwt_auth_backend_role" "admin_discord_webhooks_oidc" {
   token_ttl      = 300
   token_max_ttl  = 600
 }
+
+# Self-referential (this repo defines its own migration credential), same
+# as the Kubernetes-auth admin-openbao-tofu-state role it stands in for --
+# governs admin-openbao's CI identity, not admin-openbao's own OpenBao
+# management capabilities. Only one policy needed (tofu-state), unlike
+# admin-discord's three -- same one-role-per-policy convention, just one
+# policy here.
+resource "vault_jwt_auth_backend_role" "admin_openbao_tofu_state_oidc" {
+  backend         = vault_jwt_auth_backend.github_actions.path
+  role_name       = "admin-openbao-tofu-state-oidc"
+  role_type       = "jwt"
+  bound_audiences = ["openbao"]
+  bound_claims = {
+    repository = "mattjmorrison-homelab/admin-openbao"
+  }
+  user_claim     = "repository"
+  token_policies = ["admin-openbao-tofu-state"]
+  token_ttl      = 300
+  token_max_ttl  = 600
+}
