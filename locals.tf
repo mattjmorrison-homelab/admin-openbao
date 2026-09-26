@@ -207,10 +207,13 @@ locals {
     # admin-discord's Terraform state via actions-tofu/read-output, so
     # admin-discord never needs write access to another repo's secrets.
     # Grants both the old client-only-named path (still read/written by
-    # Narrowed 2026-09-26 (#40): ui-hdmi-switch/publish.yml confirmed
-    # repointed and live -- a real CI run wrote the real webhook value
-    # to the new host+client-named path. Old
-    # ui-hdmi-switch/discord-webhook-url grant dropped.
+    # Grants both the #40 host+client-named path (still read/written by
+    # the not-yet-repointed publish.yml) and the new
+    # service/admin-discord-owned path during the cutover window --
+    # admin-discord now owns creating and writing this value itself
+    # (its own dedicated webhook object + admin-discord-webhooks role),
+    # so this role only needs READ on the new path, no create/update.
+    # Drop the old grant once publish.yml is confirmed repointed.
     ui-hdmi-switch-discord = {
       namespace       = "github-runner"
       service_account = "github-runner-workload"
@@ -221,13 +224,13 @@ locals {
         path "kv/data/homelab/github-actions/ui-hdmi-switch/webhook-url" {
           capabilities = ["read", "create", "update"]
         }
+        path "kv/data/homelab/service/admin-discord/ui-hdmi-switch/webhook-url" {
+          capabilities = ["read"]
+        }
       EOT
     }
 
-    # Narrowed 2026-09-26 (#40): graph-hdmi-switch/publish.yml confirmed
-    # repointed and live -- a real CI run wrote the real webhook value
-    # to the new host+client-named path. Old
-    # graph-hdmi-switch/discord-webhook-url grant dropped.
+    # Same additive cutover as ui-hdmi-switch-discord above.
     graph-hdmi-switch-discord = {
       namespace       = "github-runner"
       service_account = "github-runner-workload"
@@ -237,6 +240,9 @@ locals {
         }
         path "kv/data/homelab/github-actions/graph-hdmi-switch/webhook-url" {
           capabilities = ["read", "create", "update"]
+        }
+        path "kv/data/homelab/service/admin-discord/graph-hdmi-switch/webhook-url" {
+          capabilities = ["read"]
         }
       EOT
     }
@@ -252,6 +258,26 @@ locals {
       policy          = <<-EOT
         path "kv/data/homelab/admin-discord/*" {
           capabilities = ["read"]
+        }
+      EOT
+    }
+
+    # Separate role from "admin-discord" above (different purpose,
+    # same shared github-runner-workload identity, per this repo's
+    # per-purpose-role convention) -- write-only, scoped to exactly
+    # the consumer paths admin-discord's own apply job pushes each
+    # dedicated webhook's real URL into, right after creating it. No
+    # broader grant: admin-discord's CI has no business reading these
+    # paths back, only writing them.
+    admin-discord-webhooks = {
+      namespace       = "github-runner"
+      service_account = "github-runner-workload"
+      policy          = <<-EOT
+        path "kv/data/homelab/service/admin-discord/ui-hdmi-switch/webhook-url" {
+          capabilities = ["create", "update"]
+        }
+        path "kv/data/homelab/service/admin-discord/graph-hdmi-switch/webhook-url" {
+          capabilities = ["create", "update"]
         }
       EOT
     }
@@ -578,6 +604,16 @@ locals {
     # `backend "s3"` that it's on the same shared bucket too.
     { provider = "k8s-garage", consumer = "admin-cloudflare", cred = "tofu-state-access-key-id" },
     { provider = "k8s-garage", consumer = "admin-cloudflare", cred = "tofu-state-secret-access-key" },
+
+    # admin-discord owns creating each consumer's own dedicated Discord
+    # webhook (no longer one shared webhook -- see admin-discord's own
+    # locals.tf) and pushes the real URL here itself, right after
+    # creating it, via the admin-discord-webhooks role below. Consumers
+    # only ever read their own path -- no more reaching into
+    # admin-discord's raw Terraform state (the old read-output
+    # mechanism this replaces).
+    { provider = "admin-discord", consumer = "ui-hdmi-switch", cred = "webhook-url" },
+    { provider = "admin-discord", consumer = "graph-hdmi-switch", cred = "webhook-url" },
   ]
 
   service_secrets = [
