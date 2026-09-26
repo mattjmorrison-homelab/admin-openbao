@@ -612,16 +612,6 @@ locals {
       k8s-cloudflare          = ["account-tag", "tunnel-id", "tunnel-secret", "cloudflare-api-token", "cf-account-id"]
       admin-github            = ["github-token", "tofu-state-access-key-id", "tofu-state-secret-access-key"]
       k8s-github-runner       = ["github-app-id", "github-app-installation-id", "github-app-private-key"]
-      # Old client-only-named paths, now orphaned (#40) -- both repos
-      # confirmed migrated to the host+client-named ones below. Being
-      # retired via secrets.tf's retiring_secrets split (this PR moves
-      # them there, 0 destroyed; a follow-up PR removes them from both
-      # that list and this map for real). Deliberately still listed
-      # here, not yet removed: removing an entry now would drop it
-      # from local.secrets entirely, breaking the moved block
-      # secrets.tf's split depends on.
-      ui-hdmi-switch    = ["discord-webhook-url"]
-      graph-hdmi-switch = ["discord-webhook-url"]
       # Host+client-named, matching the provider/consumer convention
       # used for Zot's service credentials -- "github-actions" is the
       # actual shared Discord webhook (see admin-discord's own
