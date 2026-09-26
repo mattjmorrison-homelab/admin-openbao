@@ -1,4 +1,4 @@
-run "hdmi_switch_discord_roles_grant_both_old_and_new_webhook_paths_during_cutover" {
+run "hdmi_switch_discord_roles_scoped_to_only_the_new_host_client_named_webhook_path" {
   command = plan
 
   assert {
@@ -6,8 +6,8 @@ run "hdmi_switch_discord_roles_grant_both_old_and_new_webhook_paths_during_cutov
     error_message = "ui-hdmi-switch-discord must grant read/create/update on its new host+client-named webhook path"
   }
   assert {
-    condition     = strcontains(local.roles["ui-hdmi-switch-discord"].policy, "kv/data/homelab/ui-hdmi-switch/discord-webhook-url")
-    error_message = "ui-hdmi-switch-discord must still keep its old grant during the cutover window -- not repointed live yet"
+    condition     = !strcontains(local.roles["ui-hdmi-switch-discord"].policy, "kv/data/homelab/ui-hdmi-switch/discord-webhook-url")
+    error_message = "ui-hdmi-switch-discord's old discord-webhook-url grant must be gone -- migration confirmed live"
   }
 
   assert {
@@ -15,8 +15,8 @@ run "hdmi_switch_discord_roles_grant_both_old_and_new_webhook_paths_during_cutov
     error_message = "graph-hdmi-switch-discord must grant read/create/update on its new host+client-named webhook path"
   }
   assert {
-    condition     = strcontains(local.roles["graph-hdmi-switch-discord"].policy, "kv/data/homelab/graph-hdmi-switch/discord-webhook-url")
-    error_message = "graph-hdmi-switch-discord must still keep its old grant during the cutover window -- not repointed live yet"
+    condition     = !strcontains(local.roles["graph-hdmi-switch-discord"].policy, "kv/data/homelab/graph-hdmi-switch/discord-webhook-url")
+    error_message = "graph-hdmi-switch-discord's old discord-webhook-url grant must be gone -- migration confirmed live"
   }
 }
 

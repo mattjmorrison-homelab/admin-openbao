@@ -207,9 +207,10 @@ locals {
     # admin-discord's Terraform state via actions-tofu/read-output, so
     # admin-discord never needs write access to another repo's secrets.
     # Grants both the old client-only-named path (still read/written by
-    # the not-yet-repointed publish.yml) and the new host+client-named
-    # one during the cutover window (#40) -- drop the old grant once
-    # publish.yml is confirmed repointed and writing real values there.
+    # Narrowed 2026-09-26 (#40): ui-hdmi-switch/publish.yml confirmed
+    # repointed and live -- a real CI run wrote the real webhook value
+    # to the new host+client-named path. Old
+    # ui-hdmi-switch/discord-webhook-url grant dropped.
     ui-hdmi-switch-discord = {
       namespace       = "github-runner"
       service_account = "github-runner-workload"
@@ -217,26 +218,22 @@ locals {
         path "kv/data/homelab/ui-hdmi-switch/*" {
           capabilities = ["read"]
         }
-        path "kv/data/homelab/ui-hdmi-switch/discord-webhook-url" {
-          capabilities = ["create", "update"]
-        }
         path "kv/data/homelab/github-actions/ui-hdmi-switch/webhook-url" {
           capabilities = ["read", "create", "update"]
         }
       EOT
     }
 
-    # Same per-purpose-role convention as ui-hdmi-switch-discord above,
-    # including the same additive old+new grant during cutover.
+    # Narrowed 2026-09-26 (#40): graph-hdmi-switch/publish.yml confirmed
+    # repointed and live -- a real CI run wrote the real webhook value
+    # to the new host+client-named path. Old
+    # graph-hdmi-switch/discord-webhook-url grant dropped.
     graph-hdmi-switch-discord = {
       namespace       = "github-runner"
       service_account = "github-runner-workload"
       policy          = <<-EOT
         path "kv/data/homelab/graph-hdmi-switch/*" {
           capabilities = ["read"]
-        }
-        path "kv/data/homelab/graph-hdmi-switch/discord-webhook-url" {
-          capabilities = ["create", "update"]
         }
         path "kv/data/homelab/github-actions/graph-hdmi-switch/webhook-url" {
           capabilities = ["read", "create", "update"]
