@@ -70,3 +70,49 @@ resource "vault_jwt_auth_backend_role" "admin_cloudflare_oidc" {
   token_ttl      = 300
   token_max_ttl  = 600
 }
+
+# admin-discord's CI uses three separate policies today (read tofu-state
+# creds, read the Discord bot token, write two consumers' webhook URLs
+# back into OpenBao) -- mirrored here as three JWT roles, same
+# one-role-per-policy convention as admin-cloudflare above.
+resource "vault_jwt_auth_backend_role" "admin_discord_tofu_state_oidc" {
+  backend         = vault_jwt_auth_backend.github_actions.path
+  role_name       = "admin-discord-tofu-state-oidc"
+  role_type       = "jwt"
+  bound_audiences = ["openbao"]
+  bound_claims = {
+    repository = "mattjmorrison-homelab/admin-discord"
+  }
+  user_claim     = "repository"
+  token_policies = ["admin-discord-tofu-state"]
+  token_ttl      = 300
+  token_max_ttl  = 600
+}
+
+resource "vault_jwt_auth_backend_role" "admin_discord_oidc" {
+  backend         = vault_jwt_auth_backend.github_actions.path
+  role_name       = "admin-discord-oidc"
+  role_type       = "jwt"
+  bound_audiences = ["openbao"]
+  bound_claims = {
+    repository = "mattjmorrison-homelab/admin-discord"
+  }
+  user_claim     = "repository"
+  token_policies = ["admin-discord"]
+  token_ttl      = 300
+  token_max_ttl  = 600
+}
+
+resource "vault_jwt_auth_backend_role" "admin_discord_webhooks_oidc" {
+  backend         = vault_jwt_auth_backend.github_actions.path
+  role_name       = "admin-discord-webhooks-oidc"
+  role_type       = "jwt"
+  bound_audiences = ["openbao"]
+  bound_claims = {
+    repository = "mattjmorrison-homelab/admin-discord"
+  }
+  user_claim     = "repository"
+  token_policies = ["admin-discord-webhooks"]
+  token_ttl      = 300
+  token_max_ttl  = 600
+}
