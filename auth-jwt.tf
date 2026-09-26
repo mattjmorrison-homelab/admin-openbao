@@ -38,3 +38,35 @@ resource "vault_jwt_auth_backend_role" "admin_github_oidc" {
   token_ttl      = 300
   token_max_ttl  = 600
 }
+
+# admin-cloudflare's CI does two separate logins today (Kubernetes-auth,
+# one per policy) -- mirrored here as two JWT roles rather than
+# consolidated into one, so the login mechanism changes but the
+# capability shape (which policy each login call gets) doesn't.
+resource "vault_jwt_auth_backend_role" "admin_cloudflare_tofu_state_oidc" {
+  backend         = vault_jwt_auth_backend.github_actions.path
+  role_name       = "admin-cloudflare-tofu-state-oidc"
+  role_type       = "jwt"
+  bound_audiences = ["openbao"]
+  bound_claims = {
+    repository = "mattjmorrison-homelab/admin-cloudflare"
+  }
+  user_claim     = "repository"
+  token_policies = ["admin-cloudflare-tofu-state"]
+  token_ttl      = 300
+  token_max_ttl  = 600
+}
+
+resource "vault_jwt_auth_backend_role" "admin_cloudflare_oidc" {
+  backend         = vault_jwt_auth_backend.github_actions.path
+  role_name       = "admin-cloudflare-oidc"
+  role_type       = "jwt"
+  bound_audiences = ["openbao"]
+  bound_claims = {
+    repository = "mattjmorrison-homelab/admin-cloudflare"
+  }
+  user_claim     = "repository"
+  token_policies = ["admin-cloudflare"]
+  token_ttl      = 300
+  token_max_ttl  = 600
+}
