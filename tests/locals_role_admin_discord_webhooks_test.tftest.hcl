@@ -23,8 +23,16 @@ run "hdmi_switch_discord_roles_grant_read_only_on_the_new_admin_discord_owned_pa
     error_message = "ui-hdmi-switch-discord must grant read on the new admin-discord-owned webhook path"
   }
   assert {
+    condition     = !strcontains(local.roles["ui-hdmi-switch-discord"].policy, "kv/data/homelab/github-actions/ui-hdmi-switch/webhook-url")
+    error_message = "ui-hdmi-switch-discord must no longer grant anything on the old github-actions/webhook-url path -- narrowed to read-only on the new path"
+  }
+  assert {
     condition     = strcontains(local.roles["graph-hdmi-switch-discord"].policy, "kv/data/homelab/service/admin-discord/graph-hdmi-switch/webhook-url")
     error_message = "graph-hdmi-switch-discord must grant read on the new admin-discord-owned webhook path"
+  }
+  assert {
+    condition     = !strcontains(local.roles["graph-hdmi-switch-discord"].policy, "kv/data/homelab/github-actions/graph-hdmi-switch/webhook-url")
+    error_message = "graph-hdmi-switch-discord must no longer grant anything on the old github-actions/webhook-url path -- narrowed to read-only on the new path"
   }
 }
 
