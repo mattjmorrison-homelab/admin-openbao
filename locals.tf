@@ -161,9 +161,14 @@ locals {
     # from the existing "admin-cloudflare" role (which grants
     # cloudflare-api-token/cf-account-id) -- this one is purely for the
     # tofu-state credential, matching every other migrated repo.
+    # kubernetes_auth = false: fully migrated to GitHub Actions OIDC
+    # (todo #17, admin-cloudflare#10/#11/#12) -- policy still needed,
+    # binding is not (reused by name by admin_cloudflare_tofu_state_oidc
+    # in auth-jwt.tf).
     admin-cloudflare-tofu-state = {
       namespace       = "github-runner"
       service_account = "github-runner-workload"
+      kubernetes_auth = false
       policy          = <<-EOT
         path "kv/data/homelab/service/k8s-garage/admin-cloudflare/tofu-state-access-key-id" {
           capabilities = ["read"]
@@ -265,9 +270,14 @@ locals {
     # the same credential, even when the values happen to be readable by
     # the same Cloudflare account -- that's exactly the sharing this
     # homelab's secrets standard exists to prevent.
+    # kubernetes_auth = false: fully migrated to GitHub Actions OIDC
+    # (todo #17, admin-cloudflare#10/#11/#12) -- policy still needed,
+    # binding is not (reused by name by admin_cloudflare_oidc in
+    # auth-jwt.tf).
     admin-cloudflare = {
       namespace       = "github-runner"
       service_account = "github-runner-workload"
+      kubernetes_auth = false
       policy          = <<-EOT
         path "kv/data/homelab/admin-cloudflare/*" {
           capabilities = ["read"]
