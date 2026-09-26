@@ -95,9 +95,14 @@ locals {
     # admin-discord's own tofu-state credential. Phase 1b (#39):
     # replaces admin-discord's use of the shared github-actions-runner
     # role/bucket above, once its state migration is confirmed live.
+    # kubernetes_auth = false: fully migrated to GitHub Actions OIDC
+    # (todo #17, admin-discord#10/#11) -- policy still needed, binding
+    # is not (reused by name by admin_discord_tofu_state_oidc in
+    # auth-jwt.tf).
     admin-discord-tofu-state = {
       namespace       = "github-runner"
       service_account = "github-runner-workload"
+      kubernetes_auth = false
       policy          = <<-EOT
         path "kv/data/homelab/service/k8s-garage/admin-discord/tofu-state-access-key-id" {
           capabilities = ["read"]
@@ -231,9 +236,13 @@ locals {
     # shared github-actions-runner role above, which only ever grants the
     # Garage tofu-state credentials every Terraform repo needs, never a
     # repo-specific secret like this one.
+    # kubernetes_auth = false: fully migrated to GitHub Actions OIDC
+    # (todo #17, admin-discord#10/#11) -- policy still needed, binding
+    # is not (reused by name by admin_discord_oidc in auth-jwt.tf).
     admin-discord = {
       namespace       = "github-runner"
       service_account = "github-runner-workload"
+      kubernetes_auth = false
       policy          = <<-EOT
         path "kv/data/homelab/admin-discord/*" {
           capabilities = ["read"]
@@ -248,9 +257,14 @@ locals {
     # dedicated webhook's real URL into, right after creating it. No
     # broader grant: admin-discord's CI has no business reading these
     # paths back, only writing them.
+    # kubernetes_auth = false: fully migrated to GitHub Actions OIDC
+    # (todo #17, admin-discord#10/#11) -- policy still needed, binding
+    # is not (reused by name by admin_discord_webhooks_oidc in
+    # auth-jwt.tf).
     admin-discord-webhooks = {
       namespace       = "github-runner"
       service_account = "github-runner-workload"
+      kubernetes_auth = false
       policy          = <<-EOT
         path "kv/data/homelab/service/admin-discord/ui-hdmi-switch/webhook-url" {
           capabilities = ["create", "update"]
