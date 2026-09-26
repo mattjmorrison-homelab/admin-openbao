@@ -116,9 +116,15 @@ locals {
     # grant. Confirmed the hard way: the first version of this role
     # only had the two tofu-state keys, and admin-github's migration
     # workflow failed fetching github-token with that grant missing.
+    # kubernetes_auth = false (2026-09-26, todo #17): every workflow in
+    # admin-github that used this role's Kubernetes-auth binding has
+    # migrated to the admin-github-oidc JWT role instead (auth-jwt.tf),
+    # confirmed live. The policy stays -- the OIDC role still reuses it
+    # by name -- only the now-unused Kubernetes-auth binding is dropped.
     admin-github-tofu-state = {
       namespace       = "github-runner"
       service_account = "github-runner-workload"
+      kubernetes_auth = false
       policy          = <<-EOT
         path "kv/data/homelab/service/k8s-garage/admin-github/tofu-state-access-key-id" {
           capabilities = ["read"]
