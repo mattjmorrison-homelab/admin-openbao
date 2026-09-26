@@ -95,9 +95,10 @@ tofu apply
 ```
 
 `VAULT_ADDR` is the external URL when running locally; CI uses the
-in-cluster address instead (`.woodpecker.yml`). Same S3-endpoint caveat as
-`admin-github` applies for the state backend when running outside the
-cluster — see that repo's README for the port-forward workaround.
+in-cluster address instead (`.github/workflows/tofu.yml`). Same
+S3-endpoint caveat as `admin-github` applies for the state backend when
+running outside the cluster — see that repo's README for the port-forward
+workaround.
 
 ## Adding a new secret or role
 
@@ -105,15 +106,25 @@ Add it to `locals.roles` and/or `locals.secrets`, then `tofu apply`. If the iden
 
 ## CI
 
-`.woodpecker.yml` runs `tofu plan` on every push/PR, `tofu apply` on push
-to `main`. `VAULT_TOKEN` comes from Woodpecker's own native secret store
-(`vault_root_token` — Settings → Secrets in Woodpecker's UI, **not**
-OpenBao), the same reason `admin-github`'s GitHub token bootstrap
-credential can't come from OpenBao either: it's the credential that
-unlocks the thing being managed, so it can't be sourced from that thing.
-State-bucket credentials reuse the same native Kubernetes secret
-(`gh-org-github-token`) `admin-github` already uses.
+`.github/workflows/tofu.yml`, same plan-artifact/apply-on-merge pattern as
+every other Terraform repo: on PR open/sync, a `check` job runs `tofu fmt
+-check`, `tflint`, `tofu test`, then `tofu plan -out=tfplan` and uploads
+that plan artifact to Garage (`admin-openbao-tofu-state` bucket). On merge
+to `main`, an `apply` job downloads that same stored plan and runs `tofu
+apply -auto-approve tfplan` — no re-plan on apply.
 
-**Manual step needed, can't be done from here:** create the
-`vault_root_token` secret in Woodpecker's Settings → Secrets, value = the
-OpenBao root token.
+Both jobs fetch their S3-backend credentials
+(`AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY`) via GitHub OIDC + OpenBao's
+`jwt` auth method (role `admin-openbao-tofu-state-oidc`) — no long-lived
+credential stored in GitHub at all for that part.
+
+`VAULT_TOKEN` is the one credential that can't come from OpenBao itself —
+it's the OpenBao root token, the credential that unlocks the thing being
+managed, so it's stored as a plain GitHub Actions secret
+(`secrets.VAULT_TOKEN`, Settings → Secrets and variables → Actions on this
+repo) instead, same reasoning as `admin-github`'s GitHub token bootstrap
+credential.
+
+**Manual step needed, can't be done from here:** create the `VAULT_TOKEN`
+secret in this repo's Settings → Secrets and variables → Actions, value =
+the OpenBao root token.
