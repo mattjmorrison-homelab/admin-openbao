@@ -89,32 +89,6 @@ locals {
       EOT
     }
 
-    # Bound to k8s-github-runner's shared CI-job-execution identity (used by
-    # both the amd64 and arm64 runner Deployments), not the "github-runner"
-    # role above -- that one's for k8s-github-runner's own app credentials
-    # (including the GitHub App private key), this is for CI workflows
-    # running on the runner to fetch the tofu-state bucket credentials,
-    # replacing a static GitHub Actions secret with an in-cluster Vault
-    # login. Deliberately a separate, narrower identity from "github-runner"
-    # so CI job code never has a path to the App's private key. Only the two
-    # tofu-state keys, not all of admin-github/*, to keep this scoped to
-    # exactly what CI workflows need.
-    github-actions-runner = {
-      namespace       = "github-runner"
-      service_account = "github-runner-workload"
-      policy          = <<-EOT
-        path "kv/data/homelab/admin-github/tofu-state-access-key-id" {
-          capabilities = ["read"]
-        }
-        path "kv/data/homelab/admin-github/tofu-state-secret-access-key" {
-          capabilities = ["read"]
-        }
-        path "kv/data/homelab/admin-github/github-token" {
-          capabilities = ["read"]
-        }
-      EOT
-    }
-
     # Same per-purpose-role convention as ui-hdmi-switch-discord/
     # graph-hdmi-switch-discord -- shared github-runner-workload
     # identity, but its own dedicated role/policy, scoped to only
