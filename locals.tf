@@ -645,6 +645,7 @@ locals {
       k8s-cloudflare          = ["account-tag", "tunnel-id", "tunnel-secret", "cloudflare-api-token", "cf-account-id"]
       admin-github            = ["github-token", "tofu-state-access-key-id", "tofu-state-secret-access-key"]
       k8s-github-runner       = ["github-app-id", "github-app-installation-id", "github-app-private-key"]
+      k8s-backstage           = ["github-app-id", "github-app-client-id", "github-app-client-secret", "github-app-private-key"]
       admin-discord           = ["discord-bot-token"]
       admin-cloudflare        = ["cloudflare-api-token", "cf-account-id"]
       pi-health               = ["ssh-private-key"]
