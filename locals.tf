@@ -642,25 +642,11 @@ locals {
       k8s-cloudflare          = ["account-tag", "tunnel-id", "tunnel-secret", "cloudflare-api-token", "cf-account-id"]
       admin-github            = ["github-token", "tofu-state-access-key-id", "tofu-state-secret-access-key"]
       k8s-github-runner       = ["github-app-id", "github-app-installation-id", "github-app-private-key"]
-      # Host+client-named paths, now orphaned -- admin-discord no longer
-      # shares one webhook object across repos (admin-discord#9); each
-      # consumer got its own dedicated webhook object instead, pushed
-      # straight into its own service/admin-discord/<repo>/webhook-url
-      # path (admin-openbao#66), and both roles narrowed off this old
-      # path (admin-openbao#67). Being retired via secrets.tf's
-      # retiring_secrets split (this PR moves them there, 0 destroyed;
-      # a follow-up PR removes them from both that list and this map
-      # for real). Deliberately still listed here, not yet removed:
-      # removing an entry now would drop it from local.secrets
-      # entirely, breaking the moved block secrets.tf's split depends
-      # on.
-      "github-actions/ui-hdmi-switch"    = ["webhook-url"]
-      "github-actions/graph-hdmi-switch" = ["webhook-url"]
-      admin-discord                      = ["discord-bot-token"]
-      admin-cloudflare                   = ["cloudflare-api-token", "cf-account-id"]
-      pi-health                          = ["ssh-private-key"]
-      pi                                 = ["pi1/private-key", "pizero/private-key", "pi5-8/private-key", "pi5-16/private-key", "k3s-join-token"]
-      homelab                            = ["zot-readonly-password"]
+      admin-discord           = ["discord-bot-token"]
+      admin-cloudflare        = ["cloudflare-api-token", "cf-account-id"]
+      pi-health               = ["ssh-private-key"]
+      pi                      = ["pi1/private-key", "pizero/private-key", "pi5-8/private-key", "pi5-16/private-key", "k3s-join-token"]
+      homelab                 = ["zot-readonly-password"]
       } : [
       for key in keys : {
         app = app
