@@ -519,12 +519,6 @@ locals {
         path "kv/data/homelab/k8s-garage/*" {
           capabilities = ["read", "create", "update"]
         }
-        path "kv/data/homelab/admin-github/tofu-state-access-key-id" {
-          capabilities = ["read", "create", "update"]
-        }
-        path "kv/data/homelab/admin-github/tofu-state-secret-access-key" {
-          capabilities = ["read", "create", "update"]
-        }
         path "kv/data/homelab/service/k8s-garage/*" {
           capabilities = ["read", "create", "update"]
         }
