@@ -449,6 +449,24 @@ locals {
       EOT
     }
 
+    # Mints postgres-password and backend-auth-key if they don't already
+    # have a value, same pattern as zot-bootstrap -- a separate identity
+    # from the backstage role above (which only ever reads), scoped to
+    # create/update on just these two specific paths, not the whole
+    # k8s-backstage/* subtree.
+    backstage-bootstrap = {
+      namespace       = "backstage"
+      service_account = "backstage-bootstrap"
+      policy          = <<-EOT
+        path "kv/data/homelab/k8s-backstage/postgres-password" {
+          capabilities = ["read", "create", "update"]
+        }
+        path "kv/data/homelab/k8s-backstage/backend-auth-key" {
+          capabilities = ["read", "create", "update"]
+        }
+      EOT
+    }
+
     cert-manager = {
       namespace       = "cert-manager"
       service_account = "homelab-cert-manager"
