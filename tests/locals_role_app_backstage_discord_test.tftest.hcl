@@ -28,3 +28,16 @@ run "app_backstage_webhook_service_credential_scaffolded" {
     error_message = "local.secrets must scaffold app-backstage's dedicated webhook-url credential"
   }
 }
+
+run "backstage_role_also_reads_its_own_zot_pull_credential" {
+  command = plan
+
+  assert {
+    condition     = strcontains(local.roles["backstage"].policy, "kv/data/homelab/service/k8s-zot/k8s-backstage/zot-pull")
+    error_message = "backstage role must grant read on its own dedicated zot-pull credential"
+  }
+  assert {
+    condition     = contains([for s in local.secrets : "${s.app}/${s.key}"], "service/k8s-zot/k8s-backstage/zot-pull")
+    error_message = "local.secrets must scaffold k8s-backstage's zot-pull credential"
+  }
+}

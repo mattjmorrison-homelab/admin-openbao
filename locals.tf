@@ -443,6 +443,9 @@ locals {
         path "kv/data/homelab/k8s-backstage/*" {
           capabilities = ["read"]
         }
+        path "kv/data/homelab/service/k8s-zot/k8s-backstage/zot-pull" {
+          capabilities = ["read"]
+        }
       EOT
     }
 
@@ -630,6 +633,7 @@ locals {
     { provider = "k8s-zot", consumer = "graph-hdmi-switch", cred = "zot-publish" },
     { provider = "k8s-zot", consumer = "ui-hdmi-switch", cred = "zot-publish" },
     { provider = "k8s-zot", consumer = "app-backstage", cred = "zot-publish" },
+    { provider = "k8s-zot", consumer = "k8s-backstage", cred = "zot-pull" },
     { provider = "k8s-zot", consumer = "zot-verify", cred = "verify-password" },
 
     # Per-repo Garage tofu-state bucket credentials -- replaces the old
