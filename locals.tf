@@ -236,6 +236,19 @@ locals {
       EOT
     }
 
+    # Brand new secret, no legacy path to preserve -- app-backstage's own
+    # dedicated Discord webhook (admin-discord#13), fetched by its
+    # publish.yml failure-notify step.
+    app-backstage-discord = {
+      namespace       = "github-runner"
+      service_account = "github-runner-workload"
+      policy          = <<-EOT
+        path "kv/data/homelab/service/admin-discord/app-backstage/webhook-url" {
+          capabilities = ["read"]
+        }
+      EOT
+    }
+
     # admin-discord's own bot token, fetched by its CI (check/apply) via
     # actions-openbao before running tofu plan/apply -- separate from the
     # shared github-actions-runner role above, which only ever grants the
@@ -275,6 +288,9 @@ locals {
           capabilities = ["create", "update"]
         }
         path "kv/data/homelab/service/admin-discord/graph-hdmi-switch/webhook-url" {
+          capabilities = ["create", "update"]
+        }
+        path "kv/data/homelab/service/admin-discord/app-backstage/webhook-url" {
           capabilities = ["create", "update"]
         }
       EOT
@@ -642,6 +658,7 @@ locals {
     # mechanism this replaces).
     { provider = "admin-discord", consumer = "ui-hdmi-switch", cred = "webhook-url" },
     { provider = "admin-discord", consumer = "graph-hdmi-switch", cred = "webhook-url" },
+    { provider = "admin-discord", consumer = "app-backstage", cred = "webhook-url" },
   ]
 
   service_secrets = [
