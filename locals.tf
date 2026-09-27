@@ -431,6 +431,21 @@ locals {
       EOT
     }
 
+    # Bound to docker-backstage's own Kaniko job ServiceAccount
+    # (k8s-ci-rbac's jobServiceAccounts entry docker-backstage-job), same
+    # per-repo dedicated Zot-publish-credential pattern as app-backstage
+    # above. docker-backstage builds and publishes the shared base image
+    # app-backstage's own build layers on top of.
+    docker-backstage = {
+      namespace       = "github-runner"
+      service_account = "docker-backstage-job"
+      policy          = <<-EOT
+        path "kv/data/homelab/service/k8s-zot/docker-backstage/zot-publish" {
+          capabilities = ["read"]
+        }
+      EOT
+    }
+
     # Backstage's own deployed runtime -- reads its GitHub App credentials
     # (already scaffolded) plus the Postgres password and backend
     # service-to-service auth key added below. ServiceAccount name matches
@@ -651,6 +666,7 @@ locals {
     { provider = "k8s-zot", consumer = "graph-hdmi-switch", cred = "zot-publish" },
     { provider = "k8s-zot", consumer = "ui-hdmi-switch", cred = "zot-publish" },
     { provider = "k8s-zot", consumer = "app-backstage", cred = "zot-publish" },
+    { provider = "k8s-zot", consumer = "docker-backstage", cred = "zot-publish" },
     { provider = "k8s-zot", consumer = "k8s-backstage", cred = "zot-pull" },
     { provider = "k8s-zot", consumer = "zot-verify", cred = "verify-password" },
 
