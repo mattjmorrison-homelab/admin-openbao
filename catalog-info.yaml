@@ -1,0 +1,11 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: admin-openbao
+  annotations:
+    github.com/project-slug: mattjmorrison-homelab/admin-openbao
+spec:
+  type: iac
+  owner: mattjmorrison-homelab
+  lifecycle: experimental
+  system: openbao
