@@ -77,6 +77,19 @@ locals {
       EOT
     }
 
+    # Brand new role -- k8s-ad-reporter's own pod identity, same
+    # dedicated-Zot-pull-credential shape as hdmi-switch above. Part of
+    # standing up the ad-reporter service (ad-reporter-plan.md).
+    k8s-ad-reporter = {
+      namespace       = "ad-reporter"
+      service_account = "ad-reporter"
+      policy          = <<-EOT
+        path "kv/data/homelab/service/k8s-zot/k8s-ad-reporter/zot-pull" {
+          capabilities = ["read"]
+        }
+      EOT
+    }
+
     # Brand new secret, no legacy path to preserve -- only ever needs the
     # one-key-per-path form.
     github-runner = {
@@ -249,6 +262,30 @@ locals {
       EOT
     }
 
+    # Brand new secret, no legacy path to preserve -- graph-ad-reporter's
+    # own dedicated Discord webhook, same shape as app-backstage-discord
+    # above. Fetched by its publish.yml failure-notify step.
+    graph-ad-reporter-discord = {
+      namespace       = "github-runner"
+      service_account = "github-runner-workload"
+      policy          = <<-EOT
+        path "kv/data/homelab/service/admin-discord/graph-ad-reporter/webhook-url" {
+          capabilities = ["read"]
+        }
+      EOT
+    }
+
+    # Same shape as graph-ad-reporter-discord above, for ui-ad-reporter.
+    ui-ad-reporter-discord = {
+      namespace       = "github-runner"
+      service_account = "github-runner-workload"
+      policy          = <<-EOT
+        path "kv/data/homelab/service/admin-discord/ui-ad-reporter/webhook-url" {
+          capabilities = ["read"]
+        }
+      EOT
+    }
+
     # admin-discord's own bot token, fetched by its CI (check/apply) via
     # actions-openbao before running tofu plan/apply -- separate from the
     # shared github-actions-runner role above, which only ever grants the
@@ -411,6 +448,29 @@ locals {
       service_account = "ui-hdmi-switch-job"
       policy          = <<-EOT
         path "kv/data/homelab/service/k8s-zot/ui-hdmi-switch/zot-publish" {
+          capabilities = ["read"]
+        }
+      EOT
+    }
+
+    # Same per-repo dedicated Zot-publish-credential pattern as
+    # graph-hdmi-switch/ui-hdmi-switch above. Part of standing up the
+    # ad-reporter service (ad-reporter-plan.md).
+    graph-ad-reporter = {
+      namespace       = "github-runner"
+      service_account = "graph-ad-reporter-job"
+      policy          = <<-EOT
+        path "kv/data/homelab/service/k8s-zot/graph-ad-reporter/zot-publish" {
+          capabilities = ["read"]
+        }
+      EOT
+    }
+
+    ui-ad-reporter = {
+      namespace       = "github-runner"
+      service_account = "ui-ad-reporter-job"
+      policy          = <<-EOT
+        path "kv/data/homelab/service/k8s-zot/ui-ad-reporter/zot-publish" {
           capabilities = ["read"]
         }
       EOT
@@ -670,6 +730,14 @@ locals {
     { provider = "k8s-zot", consumer = "k8s-backstage", cred = "zot-pull" },
     { provider = "k8s-zot", consumer = "zot-verify", cred = "verify-password" },
 
+    # ad-reporter's three-way split (graph-/ui-/k8s-ad-reporter), same
+    # publish/pull shape as graph-hdmi-switch/ui-hdmi-switch/k8s-hdmi-switch
+    # above. Part of standing up the ad-reporter service
+    # (ad-reporter-plan.md).
+    { provider = "k8s-zot", consumer = "graph-ad-reporter", cred = "zot-publish" },
+    { provider = "k8s-zot", consumer = "ui-ad-reporter", cred = "zot-publish" },
+    { provider = "k8s-zot", consumer = "k8s-ad-reporter", cred = "zot-pull" },
+
     # Per-repo Garage tofu-state bucket credentials -- replaces the old
     # single shared bucket/key every Terraform repo used to read from
     # admin-github's own path. k8s-garage's bootstrap job mints one
@@ -697,6 +765,17 @@ locals {
     { provider = "admin-discord", consumer = "ui-hdmi-switch", cred = "webhook-url" },
     { provider = "admin-discord", consumer = "graph-hdmi-switch", cred = "webhook-url" },
     { provider = "admin-discord", consumer = "app-backstage", cred = "webhook-url" },
+
+    # graph-/ui-ad-reporter's own CI failure-notify webhooks, same shape
+    # as the entries above. k8s-ad-reporter's two credentials are the
+    # feature/skill-wide confirmed/suspicious-ad webhooks (consumer name
+    # is k8s-ad-reporter, not graph-ad-reporter, since these belong to
+    # the feature as a whole, not to one repo's CI) -- see
+    # ad-reporter-plan.md.
+    { provider = "admin-discord", consumer = "graph-ad-reporter", cred = "webhook-url" },
+    { provider = "admin-discord", consumer = "ui-ad-reporter", cred = "webhook-url" },
+    { provider = "admin-discord", consumer = "k8s-ad-reporter", cred = "confirmed-webhook-url" },
+    { provider = "admin-discord", consumer = "k8s-ad-reporter", cred = "suspicious-webhook-url" },
   ]
 
   service_secrets = [
