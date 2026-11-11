@@ -816,6 +816,7 @@ locals {
       pi-health               = ["ssh-private-key"]
       pi                      = ["pi1/private-key", "pizero/private-key", "pi5-8/private-key", "pi5-16/private-key", "k3s-join-token"]
       homelab                 = ["zot-readonly-password"]
+      graph-router            = ["github-dispatch-token"]
       } : [
       for key in keys : {
         app = app
