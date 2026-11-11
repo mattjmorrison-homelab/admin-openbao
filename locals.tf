@@ -249,6 +249,21 @@ locals {
       EOT
     }
 
+    # Lets graph-hdmi-switch's CI trigger a graph-router schema recompose via
+    # workflow_dispatch after its own deploy confirms live (subgraph-deploy-
+    # triggers-router-rebuild effort). Separate role from graph-hdmi-switch-
+    # discord above -- distinct purpose, same shared github-runner-workload
+    # identity, per this repo's per-purpose-role convention.
+    graph-hdmi-switch-dispatch = {
+      namespace       = "github-runner"
+      service_account = "github-runner-workload"
+      policy          = <<-EOT
+        path "kv/data/homelab/graph-router/github-dispatch-token" {
+          capabilities = ["read"]
+        }
+      EOT
+    }
+
     # Brand new secret, no legacy path to preserve -- app-backstage's own
     # dedicated Discord webhook (admin-discord#13), fetched by its
     # publish.yml failure-notify step.
@@ -270,6 +285,21 @@ locals {
       service_account = "github-runner-workload"
       policy          = <<-EOT
         path "kv/data/homelab/service/admin-discord/graph-ad-reporter/webhook-url" {
+          capabilities = ["read"]
+        }
+      EOT
+    }
+
+    # Lets graph-ad-reporter's CI trigger a graph-router schema recompose via
+    # workflow_dispatch after its own deploy confirms live (subgraph-deploy-
+    # triggers-router-rebuild effort). Separate role from graph-ad-reporter-
+    # discord above -- distinct purpose, same shared github-runner-workload
+    # identity, per this repo's per-purpose-role convention.
+    graph-ad-reporter-dispatch = {
+      namespace       = "github-runner"
+      service_account = "github-runner-workload"
+      policy          = <<-EOT
+        path "kv/data/homelab/graph-router/github-dispatch-token" {
           capabilities = ["read"]
         }
       EOT
