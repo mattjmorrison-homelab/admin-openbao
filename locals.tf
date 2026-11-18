@@ -360,6 +360,12 @@ locals {
         path "kv/data/homelab/service/admin-discord/app-backstage/webhook-url" {
           capabilities = ["create", "update"]
         }
+        path "kv/data/homelab/service/admin-discord/pi-health/uptime-webhook-url" {
+          capabilities = ["create", "update"]
+        }
+        path "kv/data/homelab/service/admin-discord/pi-health/downtime-webhook-url" {
+          capabilities = ["create", "update"]
+        }
       EOT
     }
 
@@ -397,6 +403,12 @@ locals {
       service_account = "github-runner-workload"
       policy          = <<-EOT
         path "kv/data/homelab/pi-health/ssh-private-key" {
+          capabilities = ["read"]
+        }
+        path "kv/data/homelab/service/admin-discord/pi-health/uptime-webhook-url" {
+          capabilities = ["read"]
+        }
+        path "kv/data/homelab/service/admin-discord/pi-health/downtime-webhook-url" {
           capabilities = ["read"]
         }
       EOT
