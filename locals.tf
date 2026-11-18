@@ -360,6 +360,12 @@ locals {
         path "kv/data/homelab/service/admin-discord/app-backstage/webhook-url" {
           capabilities = ["create", "update"]
         }
+        path "kv/data/homelab/service/admin-discord/pi-health/uptime-webhook-url" {
+          capabilities = ["create", "update"]
+        }
+        path "kv/data/homelab/service/admin-discord/pi-health/downtime-webhook-url" {
+          capabilities = ["create", "update"]
+        }
       EOT
     }
 
