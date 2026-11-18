@@ -399,6 +399,12 @@ locals {
         path "kv/data/homelab/pi-health/ssh-private-key" {
           capabilities = ["read"]
         }
+        path "kv/data/homelab/service/admin-discord/pi-health/uptime-webhook-url" {
+          capabilities = ["read"]
+        }
+        path "kv/data/homelab/service/admin-discord/pi-health/downtime-webhook-url" {
+          capabilities = ["read"]
+        }
       EOT
     }
 
