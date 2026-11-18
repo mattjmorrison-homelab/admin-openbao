@@ -26,6 +26,9 @@ locals {
         path "kv/data/homelab/k8s-alertmanager/*" {
           capabilities = ["read"]
         }
+        path "kv/data/homelab/service/admin-discord/k8s-alertmanager/*" {
+          capabilities = ["read"]
+        }
       EOT
     }
 
@@ -372,6 +375,15 @@ locals {
         path "kv/data/homelab/service/admin-discord/k8s-ad-reporter/suspicious-webhook-url" {
           capabilities = ["create", "update"]
         }
+        path "kv/data/homelab/service/admin-discord/k8s-alertmanager/discord-webhook-url" {
+          capabilities = ["create", "update"]
+        }
+        path "kv/data/homelab/service/admin-discord/k8s-alertmanager/downtime-webhook-url" {
+          capabilities = ["create", "update"]
+        }
+        path "kv/data/homelab/service/admin-discord/k8s-argocd/discord-webhook-url" {
+          capabilities = ["create", "update"]
+        }
       EOT
     }
 
@@ -638,6 +650,9 @@ locals {
       service_account = "argocd-notifications-controller"
       policy          = <<-EOT
         path "kv/data/homelab/k8s-argocd/discord-webhook-url" {
+          capabilities = ["read"]
+        }
+        path "kv/data/homelab/service/admin-discord/k8s-argocd/discord-webhook-url" {
           capabilities = ["read"]
         }
       EOT
