@@ -366,6 +366,12 @@ locals {
         path "kv/data/homelab/service/admin-discord/pi-health/downtime-webhook-url" {
           capabilities = ["create", "update"]
         }
+        path "kv/data/homelab/service/admin-discord/k8s-ad-reporter/confirmed-webhook-url" {
+          capabilities = ["create", "update"]
+        }
+        path "kv/data/homelab/service/admin-discord/k8s-ad-reporter/suspicious-webhook-url" {
+          capabilities = ["create", "update"]
+        }
       EOT
     }
 
