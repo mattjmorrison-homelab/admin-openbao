@@ -572,6 +572,39 @@ locals {
       EOT
     }
 
+    # Healthchecks' own deployed runtime -- read-only on its two secrets.
+    # Paired with healthchecks-bootstrap below, same split as
+    # zot/zot-bootstrap and backstage/backstage-bootstrap.
+    healthchecks = {
+      namespace       = "healthchecks"
+      service_account = "healthchecks"
+      policy          = <<-EOT
+        path "kv/data/homelab/k8s-healthchecks/secret-key" {
+          capabilities = ["read"]
+        }
+        path "kv/data/homelab/k8s-healthchecks/superuser-password" {
+          capabilities = ["read"]
+        }
+      EOT
+    }
+
+    # Mints secret-key and superuser-password if they don't already have a
+    # value, same pattern as zot-bootstrap/backstage-bootstrap -- a
+    # separate identity from the healthchecks role above (which only ever
+    # reads), scoped to create/update on just these two specific paths.
+    healthchecks-bootstrap = {
+      namespace       = "healthchecks"
+      service_account = "healthchecks-bootstrap"
+      policy          = <<-EOT
+        path "kv/data/homelab/k8s-healthchecks/secret-key" {
+          capabilities = ["read", "create", "update"]
+        }
+        path "kv/data/homelab/k8s-healthchecks/superuser-password" {
+          capabilities = ["read", "create", "update"]
+        }
+      EOT
+    }
+
     cert-manager = {
       namespace       = "cert-manager"
       service_account = "homelab-cert-manager"
@@ -841,6 +874,7 @@ locals {
       admin-github            = ["github-token", "tofu-state-access-key-id", "tofu-state-secret-access-key"]
       k8s-github-runner       = ["github-app-id", "github-app-installation-id", "github-app-private-key"]
       k8s-backstage           = ["github-app-id", "github-app-client-id", "github-app-client-secret", "github-app-private-key", "postgres-password", "backend-auth-key"]
+      k8s-healthchecks        = ["secret-key", "superuser-password"]
       admin-discord           = ["discord-bot-token"]
       admin-cloudflare        = ["cloudflare-api-token", "cf-account-id"]
       pi-health               = ["ssh-private-key"]
