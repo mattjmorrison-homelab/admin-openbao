@@ -372,6 +372,17 @@ locals {
         path "kv/data/homelab/service/admin-discord/k8s-ad-reporter/suspicious-webhook-url" {
           capabilities = ["create", "update"]
         }
+        # k8s-alertmanager and k8s-argocd predate the service/admin-discord/*
+        # convention above -- populated by hand long ago, never through this
+        # write-back mechanism -- but are now intentionally in scope for it
+        # going forward (admin-discord#18). Flatter legacy path shape is
+        # deliberate, not a typo.
+        path "kv/data/homelab/k8s-alertmanager/discord-webhook-url" {
+          capabilities = ["create", "update"]
+        }
+        path "kv/data/homelab/k8s-argocd/discord-webhook-url" {
+          capabilities = ["create", "update"]
+        }
       EOT
     }
 
