@@ -432,6 +432,9 @@ locals {
         path "kv/data/homelab/service/admin-discord/pi-health/downtime-webhook-url" {
           capabilities = ["read"]
         }
+        path "ssh/sign/pi-fleet" {
+          capabilities = ["create", "update"]
+        }
       EOT
     }
 
