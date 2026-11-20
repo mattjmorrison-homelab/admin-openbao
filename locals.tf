@@ -457,6 +457,23 @@ locals {
       EOT
     }
 
+    # pi-fleet's CI signs an ephemeral keypair's public half via the SSH
+    # CA (ssh.tf) instead of fetching a long-lived private key -- scoped
+    # to exactly its own ssh/sign/pi-fleet path, not a wildcard.
+    # kubernetes_auth = false: pi-fleet's CI only ever authenticates via
+    # GitHub Actions OIDC (reused by name by pi_fleet_oidc in
+    # auth-jwt.tf), same convention as pi-health-deploy above.
+    pi-fleet = {
+      namespace       = "github-runner"
+      service_account = "github-runner-workload"
+      kubernetes_auth = false
+      policy          = <<-EOT
+        path "ssh/sign/pi-fleet" {
+          capabilities = ["create", "update"]
+        }
+      EOT
+    }
+
     # Narrow, per-purpose CI credential fetch using the shared
     # github-runner-workload identity (same pattern as github-actions-runner/
     # pi-health-deploy/pi-provision-deploy), deliberately not reusing the

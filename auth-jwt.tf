@@ -154,3 +154,20 @@ resource "vault_jwt_auth_backend_role" "pi_health_deploy_oidc" {
   token_ttl      = 300
   token_max_ttl  = 600
 }
+
+# pi-fleet's CI requests a signed SSH cert for its own ephemeral keypair
+# (ssh.tf) -- same one-role, one-policy shape as pi-health-deploy-oidc
+# above.
+resource "vault_jwt_auth_backend_role" "pi_fleet_oidc" {
+  backend         = vault_jwt_auth_backend.github_actions.path
+  role_name       = "pi-fleet-oidc"
+  role_type       = "jwt"
+  bound_audiences = ["openbao"]
+  bound_claims = {
+    repository = "mattjmorrison-homelab/pi-fleet"
+  }
+  user_claim     = "repository"
+  token_policies = ["pi-fleet"]
+  token_ttl      = 300
+  token_max_ttl  = 600
+}
