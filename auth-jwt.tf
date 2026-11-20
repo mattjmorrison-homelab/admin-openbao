@@ -137,10 +137,6 @@ resource "vault_jwt_auth_backend_role" "admin_openbao_tofu_state_oidc" {
   token_max_ttl  = 600
 }
 
-# pi-health has only one Kubernetes-auth role to replace (its CI apply
-# job fetching the pi1 SSH key + Discord webhook URLs), same one-role
-# pattern as admin-github/admin-openbao above -- not three like
-# admin-discord, since pi-health's CI only ever does the one login.
 resource "vault_jwt_auth_backend_role" "pi_health_deploy_oidc" {
   backend         = vault_jwt_auth_backend.github_actions.path
   role_name       = "pi-health-deploy-oidc"
@@ -155,9 +151,6 @@ resource "vault_jwt_auth_backend_role" "pi_health_deploy_oidc" {
   token_max_ttl  = 600
 }
 
-# pi-fleet's CI requests a signed SSH cert for its own ephemeral keypair
-# (ssh.tf) -- same one-role, one-policy shape as pi-health-deploy-oidc
-# above.
 resource "vault_jwt_auth_backend_role" "pi_fleet_oidc" {
   backend         = vault_jwt_auth_backend.github_actions.path
   role_name       = "pi-fleet-oidc"

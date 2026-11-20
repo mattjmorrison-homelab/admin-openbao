@@ -416,9 +416,8 @@ locals {
     # for CI's apply job (running as github-runner-workload, same shared
     # identity every other CI role uses) to fetch the SSH key it deploys
     # pi-health with.
-    # kubernetes_auth = false: fully migrated to GitHub Actions OIDC
-    # (todo #17) -- policy still needed, binding is not (reused by name
-    # by pi_health_deploy_oidc in auth-jwt.tf).
+    # Policy name is reused by pi_health_deploy_oidc's token_policies in
+    # auth-jwt.tf.
     pi-health-deploy = {
       namespace       = "github-runner"
       service_account = "github-runner-workload"
@@ -457,12 +456,8 @@ locals {
       EOT
     }
 
-    # pi-fleet's CI signs an ephemeral keypair's public half via the SSH
-    # CA (ssh.tf) instead of fetching a long-lived private key -- scoped
-    # to exactly its own ssh/sign/pi-fleet path, not a wildcard.
-    # kubernetes_auth = false: pi-fleet's CI only ever authenticates via
-    # GitHub Actions OIDC (reused by name by pi_fleet_oidc in
-    # auth-jwt.tf), same convention as pi-health-deploy above.
+    # Policy name is reused by pi_fleet_oidc's token_policies in
+    # auth-jwt.tf.
     pi-fleet = {
       namespace       = "github-runner"
       service_account = "github-runner-workload"

@@ -17,11 +17,6 @@ run "argocd_notifications_policy_grants_only_its_own_exact_key" {
   }
 }
 
-# Additive step of migrating k8s-argocd's Discord webhook onto the standard
-# service/admin-discord/<consumer>/<cred> convention (admin-discord#18).
-# argocd-notifications gains read on the new exact key alongside its
-# still-live old exact key -- the old grant is dropped later, once
-# k8s-argocd's ExternalSecrets are repointed and confirmed.
 run "argocd_notifications_also_reads_new_admin_discord_path" {
   command = plan
 

@@ -1,10 +1,3 @@
-# Additive step of migrating k8s-alertmanager's and k8s-argocd's Discord
-# webhooks from their old self-owned OpenBao paths onto the standard
-# service/admin-discord/<consumer>/<cred> convention (admin-discord#18).
-# admin-discord's CI write-back needs create/update on the new paths
-# alongside the still-live old paths -- old grants/paths are dropped later,
-# once both consumers are repointed and confirmed.
-
 run "admin_discord_webhooks_role_writes_k8s_alertmanager_and_k8s_argocd_new_paths" {
   command = plan
 
