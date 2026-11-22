@@ -314,6 +314,30 @@ locals {
       EOT
     }
 
+    # Same shape as graph-ad-reporter-discord above, for graph-claude.
+    graph-claude-discord = {
+      namespace       = "github-runner"
+      service_account = "github-runner-workload"
+      policy          = <<-EOT
+        path "kv/data/homelab/service/admin-discord/graph-claude/webhook-url" {
+          capabilities = ["read"]
+        }
+      EOT
+    }
+
+    # Same shape as graph-ad-reporter-dispatch above, for graph-claude.
+    # Same shared dispatch-token path every subgraph's publish workflow
+    # already reads from, not a new path.
+    graph-claude-dispatch = {
+      namespace       = "github-runner"
+      service_account = "github-runner-workload"
+      policy          = <<-EOT
+        path "kv/data/homelab/graph-router/github-dispatch-token" {
+          capabilities = ["read"]
+        }
+      EOT
+    }
+
     # Same shape as graph-ad-reporter-discord above, for ui-ad-reporter.
     ui-ad-reporter-discord = {
       namespace       = "github-runner"
@@ -391,6 +415,9 @@ locals {
           capabilities = ["create", "update"]
         }
         path "kv/data/homelab/service/admin-discord/k8s-argocd/discord-webhook-url" {
+          capabilities = ["create", "update"]
+        }
+        path "kv/data/homelab/service/admin-discord/graph-claude/webhook-url" {
           capabilities = ["create", "update"]
         }
       EOT
@@ -559,6 +586,18 @@ locals {
       service_account = "ui-ad-reporter-job"
       policy          = <<-EOT
         path "kv/data/homelab/service/k8s-zot/ui-ad-reporter/zot-publish" {
+          capabilities = ["read"]
+        }
+      EOT
+    }
+
+    # Same per-repo dedicated Zot-publish-credential pattern as
+    # graph-ad-reporter above, for graph-claude.
+    graph-claude = {
+      namespace       = "github-runner"
+      service_account = "graph-claude-job"
+      policy          = <<-EOT
+        path "kv/data/homelab/service/k8s-zot/graph-claude/zot-publish" {
           capabilities = ["read"]
         }
       EOT
@@ -900,6 +939,11 @@ locals {
     { provider = "admin-discord", consumer = "ui-ad-reporter", cred = "webhook-url" },
     { provider = "admin-discord", consumer = "k8s-ad-reporter", cred = "confirmed-webhook-url" },
     { provider = "admin-discord", consumer = "k8s-ad-reporter", cred = "suspicious-webhook-url" },
+
+    # graph-claude's CI publish/notify identities, same stage
+    # graph-ad-reporter was at before its own manifests repo existed.
+    { provider = "k8s-zot", consumer = "graph-claude", cred = "zot-publish" },
+    { provider = "admin-discord", consumer = "graph-claude", cred = "webhook-url" },
   ]
 
   service_secrets = [
