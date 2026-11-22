@@ -23,4 +23,13 @@ resource "vault_ssh_secret_backend_role" "pi_fleet" {
   default_user            = "pi"
   ttl                     = "5m"
   max_ttl                 = "1h"
+
+  # Without these, certs carry zero extensions -- pi-health's deploy flow
+  # uses `ssh -t`, which fails PTY allocation on a cert with no permit-pty.
+  default_extensions = {
+    "permit-pty"              = ""
+    "permit-port-forwarding"  = ""
+    "permit-agent-forwarding" = ""
+    "permit-user-rc"          = ""
+  }
 }
