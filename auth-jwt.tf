@@ -164,3 +164,17 @@ resource "vault_jwt_auth_backend_role" "pi_fleet_oidc" {
   token_ttl      = 300
   token_max_ttl  = 600
 }
+
+resource "vault_jwt_auth_backend_role" "pi_provision_oidc" {
+  backend         = vault_jwt_auth_backend.github_actions.path
+  role_name       = "pi-provision-oidc"
+  role_type       = "jwt"
+  bound_audiences = ["openbao"]
+  bound_claims = {
+    repository = "mattjmorrison-homelab/pi-provision"
+  }
+  user_claim     = "repository"
+  token_policies = ["pi-fleet"]
+  token_ttl      = 300
+  token_max_ttl  = 600
+}
