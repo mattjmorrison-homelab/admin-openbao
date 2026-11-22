@@ -919,7 +919,7 @@ locals {
       k8s-argocd = ["discord-webhook-url", "github-webhook-secret"]
       k8s-garage = ["rpc-secret", "admin-token", "metrics-token"]
 
-      k8s-alertmanager        = ["discord-webhook-url", "downtime-webhook-url"]
+      k8s-alertmanager        = ["discord-webhook-url", "downtime-webhook-url", "healthchecks-ping-url"]
       k8s-zot                 = ["htpasswd"]
       k8s-cert-manager-config = ["cloudflare-api-token"]
       k8s-cloudflare          = ["account-tag", "tunnel-id", "tunnel-secret", "cloudflare-api-token", "cf-account-id"]
