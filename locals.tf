@@ -90,6 +90,12 @@ locals {
         path "kv/data/homelab/service/k8s-zot/k8s-ad-reporter/zot-pull" {
           capabilities = ["read"]
         }
+        path "kv/data/homelab/service/admin-discord/k8s-ad-reporter/confirmed-webhook-url" {
+          capabilities = ["read"]
+        }
+        path "kv/data/homelab/service/admin-discord/k8s-ad-reporter/suspicious-webhook-url" {
+          capabilities = ["read"]
+        }
       EOT
     }
 
