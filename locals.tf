@@ -99,6 +99,16 @@ locals {
       EOT
     }
 
+    k8s-claude = {
+      namespace       = "claude"
+      service_account = "claude"
+      policy          = <<-EOT
+        path "kv/data/homelab/service/k8s-zot/k8s-claude/zot-pull" {
+          capabilities = ["read"]
+        }
+      EOT
+    }
+
     # Brand new secret, no legacy path to preserve -- only ever needs the
     # one-key-per-path form.
     github-runner = {
@@ -900,6 +910,7 @@ locals {
     { provider = "k8s-zot", consumer = "graph-ad-reporter", cred = "zot-publish" },
     { provider = "k8s-zot", consumer = "ui-ad-reporter", cred = "zot-publish" },
     { provider = "k8s-zot", consumer = "k8s-ad-reporter", cred = "zot-pull" },
+    { provider = "k8s-zot", consumer = "k8s-claude", cred = "zot-pull" },
 
     # Per-repo Garage tofu-state bucket credentials -- replaces the old
     # single shared bucket/key every Terraform repo used to read from
