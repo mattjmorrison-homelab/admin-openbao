@@ -417,6 +417,9 @@ locals {
         path "kv/data/homelab/service/admin-discord/k8s-argocd/discord-webhook-url" {
           capabilities = ["create", "update"]
         }
+        path "kv/data/homelab/service/admin-discord/graph-claude/webhook-url" {
+          capabilities = ["create", "update"]
+        }
       EOT
     }
 
