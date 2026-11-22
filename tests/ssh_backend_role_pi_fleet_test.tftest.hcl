@@ -25,4 +25,14 @@ run "pi_fleet_ssh_role_scoped_to_pi_fleets_own_use_case" {
     condition     = vault_ssh_secret_backend_role.pi_fleet.max_ttl == "1h"
     error_message = "max_ttl must stay short -- this signs a cert for a one-shot CI connection, not a standing credential"
   }
+
+  assert {
+    condition = vault_ssh_secret_backend_role.pi_fleet.default_extensions == tomap({
+      "permit-pty"              = ""
+      "permit-port-forwarding"  = ""
+      "permit-agent-forwarding" = ""
+      "permit-user-rc"          = ""
+    })
+    error_message = "signed certs must carry the standard session extensions -- without permit-pty, pi-health's `ssh -t` deploy flow fails PTY allocation"
+  }
 }
