@@ -613,6 +613,18 @@ locals {
       EOT
     }
 
+    # Same per-repo dedicated Zot-publish-credential pattern as
+    # graph-claude above, for claude-prompt-runner.
+    claude-prompt-runner = {
+      namespace       = "github-runner"
+      service_account = "claude-prompt-runner-job"
+      policy          = <<-EOT
+        path "kv/data/homelab/service/k8s-zot/claude-prompt-runner/zot-publish" {
+          capabilities = ["read"]
+        }
+      EOT
+    }
+
     # Bound to app-backstage's own Kaniko job ServiceAccount
     # (k8s-ci-rbac's jobServiceAccounts entry app-backstage-job), same
     # per-repo dedicated Zot-publish-credential pattern as graph-router/
@@ -954,6 +966,7 @@ locals {
     # graph-claude's CI publish/notify identities, same stage
     # graph-ad-reporter was at before its own manifests repo existed.
     { provider = "k8s-zot", consumer = "graph-claude", cred = "zot-publish" },
+    { provider = "k8s-zot", consumer = "claude-prompt-runner", cred = "zot-publish" },
     { provider = "admin-discord", consumer = "graph-claude", cred = "webhook-url" },
   ]
 

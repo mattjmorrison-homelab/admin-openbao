@@ -27,4 +27,13 @@ run "kaniko_job_roles_read_their_own_zot_publish_credential_via_their_own_job_se
     condition     = local.roles["ui-hdmi-switch"].service_account == "ui-hdmi-switch-job"
     error_message = "ui-hdmi-switch role must be bound to its own Kaniko job ServiceAccount, not a shared identity"
   }
+
+  assert {
+    condition     = strcontains(local.roles["claude-prompt-runner"].policy, "kv/data/homelab/service/k8s-zot/claude-prompt-runner/zot-publish")
+    error_message = "claude-prompt-runner role must grant read on its own dedicated Zot publish credential"
+  }
+  assert {
+    condition     = local.roles["claude-prompt-runner"].service_account == "claude-prompt-runner-job"
+    error_message = "claude-prompt-runner role must be bound to its own Kaniko job ServiceAccount, not a shared identity"
+  }
 }
